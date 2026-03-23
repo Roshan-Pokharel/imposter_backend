@@ -14,96 +14,95 @@ const io = new Server(server, {
 // In-memory database
 const rooms = {};
 
-// 🌍 Bilingual Word Bank
+// Bilingual word database (English & Nepali)
 const wordBank = [
   // 🐾 Animals
-  { word: "Tiger", wordNp: "बाघ", clue: "Animal", clueNp: "जनावर" },
-  { word: "Elephant", wordNp: "हात्ती", clue: "Animal", clueNp: "जनावर" },
-  { word: "Dog", wordNp: "कुकुर", clue: "Animal", clueNp: "जनावर" },
-  { word: "Cat", wordNp: "बिरालो", clue: "Animal", clueNp: "जनावर" },
-  { word: "Lion", wordNp: "सिंह", clue: "Animal", clueNp: "जनावर" },
-  { word: "Horse", wordNp: "घोडा", clue: "Animal", clueNp: "जनावर" },
-  { word: "Monkey", wordNp: "बाँदर", clue: "Animal", clueNp: "जनावर" },
-  { word: "Snake", wordNp: "सर्प", clue: "Animal", clueNp: "जनावर" },
-  { word: "Frog", wordNp: "भ्यागुता", clue: "Animal", clueNp: "जनावर" },
-  { word: "Dolphin", wordNp: "डोल्फिन", clue: "Animal", clueNp: "जनावर" },
+  { en: { word: "Tiger", clue: "Animal" }, np: { word: "बाघ", clue: "जनावर" } },
+  { en: { word: "Elephant", clue: "Animal" }, np: { word: "हात्ती", clue: "जनावर" } },
+  { en: { word: "Dog", clue: "Animal" }, np: { word: "कुकुर", clue: "जनावर" } },
+  { en: { word: "Cat", clue: "Animal" }, np: { word: "बिरालो", clue: "जनावर" } },
+  { en: { word: "Lion", clue: "Animal" }, np: { word: "सिंह", clue: "जनावर" } },
+  { en: { word: "Horse", clue: "Animal" }, np: { word: "घोडा", clue: "जनावर" } },
+  { en: { word: "Monkey", clue: "Animal" }, np: { word: "बाँदर", clue: "जनावर" } },
+  { en: { word: "Snake", clue: "Animal" }, np: { word: "सर्प", clue: "जनावर" } },
+  { en: { word: "Frog", clue: "Animal" }, np: { word: "भ्यागुतो", clue: "जनावर" } },
+  { en: { word: "Dolphin", clue: "Animal" }, np: { word: "डल्फिन", clue: "जनावर" } },
 
   // 🍔 Food
-  { word: "Pizza", wordNp: "पिज्जा", clue: "Food", clueNp: "खाना" },
-  { word: "Burger", wordNp: "बर्गर", clue: "Food", clueNp: "खाना" },
-  { word: "Pasta", wordNp: "पास्ता", clue: "Food", clueNp: "खाना" },
-  { word: "Rice", wordNp: "भात", clue: "Food", clueNp: "खाना" },
-  { word: "Momo", wordNp: "मम", clue: "Food", clueNp: "खाना" },
-  { word: "Noodles", wordNp: "चाउमिन", clue: "Food", clueNp: "खाना" },
-  { word: "Ice Cream", wordNp: "आइसक्रिम", clue: "Food", clueNp: "खाना" },
-  { word: "Chocolate", wordNp: "चकलेट", clue: "Food", clueNp: "खाना" },
-  { word: "Cake", wordNp: "केक", clue: "Food", clueNp: "खाना" },
-  { word: "Apple", wordNp: "स्याउ", clue: "Food", clueNp: "खाना" },
+  { en: { word: "Pizza", clue: "Food" }, np: { word: "पिज्जा", clue: "खाना" } },
+  { en: { word: "Burger", clue: "Food" }, np: { word: "बर्गर", clue: "खाना" } },
+  { en: { word: "Pasta", clue: "Food" }, np: { word: "पास्ता", clue: "खाना" } },
+  { en: { word: "Rice", clue: "Food" }, np: { word: "भात", clue: "खाना" } },
+  { en: { word: "Momo", clue: "Food" }, np: { word: "ममो", clue: "खाना" } },
+  { en: { word: "Noodles", clue: "Food" }, np: { word: "चाउचाउ", clue: "खाना" } },
+  { en: { word: "Ice Cream", clue: "Food" }, np: { word: "आइसक्रिम", clue: "खाना" } },
+  { en: { word: "Chocolate", clue: "Food" }, np: { word: "चकलेट", clue: "खाना" } },
+  { en: { word: "Cake", clue: "Food" }, np: { word: "केक", clue: "खाना" } },
+  { en: { word: "Apple", clue: "Food" }, np: { word: "स्याउ", clue: "खाना" } },
 
   // 🚗 Vehicles
-  { word: "Car", wordNp: "गाडी", clue: "Vehicle", clueNp: "सवारी साधन" },
-  { word: "Bus", wordNp: "बस", clue: "Vehicle", clueNp: "सवारी साधन" },
-  { word: "Airplane", wordNp: "जहाज", clue: "Vehicle", clueNp: "सवारी साधन" },
-  { word: "Bicycle", wordNp: "साइकल", clue: "Vehicle", clueNp: "सवारी साधन" },
-  { word: "Motorbike", wordNp: "मोटरसाइकल", clue: "Vehicle", clueNp: "सवारी साधन" },
-  { word: "Train", wordNp: "रेल", clue: "Vehicle", clueNp: "सवारी साधन" },
-  { word: "Helicopter", wordNp: "हेलिकप्टर", clue: "Vehicle", clueNp: "सवारी साधन" },
-  { word: "Boat", wordNp: "डुंगा", clue: "Vehicle", clueNp: "सवारी साधन" },
-  { word: "Truck", wordNp: "ट्रक", clue: "Vehicle", clueNp: "सवारी साधन" },
-  { word: "Scooter", wordNp: "स्कुटर", clue: "Vehicle", clueNp: "सवारी साधन" },
+  { en: { word: "Car", clue: "Vehicle" }, np: { word: "कार", clue: "सवारी साधन" } },
+  { en: { word: "Bus", clue: "Vehicle" }, np: { word: "बस", clue: "सवारी साधन" } },
+  { en: { word: "Airplane", clue: "Vehicle" }, np: { word: "हवाइजहाज", clue: "सवारी साधन" } },
+  { en: { word: "Bicycle", clue: "Vehicle" }, np: { word: "साइकल", clue: "सवारी साधन" } },
+  { en: { word: "Motorbike", clue: "Vehicle" }, np: { word: "मोटरसाइकल", clue: "सवारी साधन" } },
+  { en: { word: "Train", clue: "Vehicle" }, np: { word: "रेल", clue: "सवारी साधन" } },
+  { en: { word: "Helicopter", clue: "Vehicle" }, np: { word: "हेलिकप्टर", clue: "सवारी साधन" } },
+  { en: { word: "Boat", clue: "Vehicle" }, np: { word: "डुङ्गा", clue: "सवारी साधन" } },
+  { en: { word: "Truck", clue: "Vehicle" }, np: { word: "ट्रक", clue: "सवारी साधन" } },
+  { en: { word: "Scooter", clue: "Vehicle" }, np: { word: "स्कुटर", clue: "सवारी साधन" } },
 
   // 🎵 Instruments
-  { word: "Guitar", wordNp: "गिटार", clue: "Instrument", clueNp: "वाद्ययन्त्र" },
-  { word: "Piano", wordNp: "पियानो", clue: "Instrument", clueNp: "वाद्ययन्त्र" },
-  { word: "Drum", wordNp: "ड्रम", clue: "Instrument", clueNp: "वाद्ययन्त्र" },
-  { word: "Flute", wordNp: "बाँसुरी", clue: "Instrument", clueNp: "वाद्ययन्त्र" },
-  { word: "Violin", wordNp: "भायोलिन", clue: "Instrument", clueNp: "वाद्ययन्त्र" },
-  { word: "Trumpet", wordNp: "ट्रम्पेट", clue: "Instrument", clueNp: "वाद्ययन्त्र" },
-  { word: "Harmonium", wordNp: "हार्मोनियम", clue: "Instrument", clueNp: "वाद्ययन्त्र" },
+  { en: { word: "Guitar", clue: "Instrument" }, np: { word: "गितार", clue: "बाजा" } },
+  { en: { word: "Piano", clue: "Instrument" }, np: { word: "पियानो", clue: "बाजा" } },
+  { en: { word: "Drum", clue: "Instrument" }, np: { word: "ड्रम", clue: "बाजा" } },
+  { en: { word: "Flute", clue: "Instrument" }, np: { word: "बाँसुरी", clue: "बाजा" } },
+  { en: { word: "Violin", clue: "Instrument" }, np: { word: "भायोलिन", clue: "बाजा" } },
+  { en: { word: "Trumpet", clue: "Instrument" }, np: { word: "ट्रम्पेट", clue: "बाजा" } },
+  { en: { word: "Harmonium", clue: "Instrument" }, np: { word: "हारमोनियम", clue: "बाजा" } },
 
   // 🏠 Household Items
-  { word: "Chair", wordNp: "कुर्सी", clue: "Furniture", clueNp: "फर्निचर" },
-  { word: "Table", wordNp: "टेबल", clue: "Furniture", clueNp: "फर्निचर" },
-  { word: "Bed", wordNp: "ओछ्यान", clue: "Furniture", clueNp: "फर्निचर" },
-  { word: "Fan", wordNp: "पंखा", clue: "Appliance", clueNp: "उपकरण" },
-  { word: "Television", wordNp: "टेलिभिजन", clue: "Appliance", clueNp: "उपकरण" },
-  { word: "Refrigerator", wordNp: "फ्रिज", clue: "Appliance", clueNp: "उपकरण" },
-  { word: "Mirror", wordNp: "ऐना", clue: "Object", clueNp: "वस्तु" },
-  { word: "Door", wordNp: "ढोका", clue: "Object", clueNp: "वस्तु" },
+  { en: { word: "Chair", clue: "Furniture" }, np: { word: "कुर्सी", clue: "फर्निचर" } },
+  { en: { word: "Table", clue: "Furniture" }, np: { word: "टेबुल", clue: "फर्निचर" } },
+  { en: { word: "Bed", clue: "Furniture" }, np: { word: "ओछ्यान", clue: "फर्निचर" } },
+  { en: { word: "Fan", clue: "Appliance" }, np: { word: "पंखा", clue: "उपकरण" } },
+  { en: { word: "Television", clue: "Appliance" }, np: { word: "टेलिभिजन", clue: "उपकरण" } },
+  { en: { word: "Refrigerator", clue: "Appliance" }, np: { word: "फ्रिज", clue: "उपकरण" } },
+  { en: { word: "Mirror", clue: "Object" }, np: { word: "ऐना", clue: "वस्तु" } },
+  { en: { word: "Door", clue: "Object" }, np: { word: "ढोका", clue: "वस्तु" } },
 
   // 📱 Technology
-  { word: "Phone", wordNp: "फोन", clue: "Technology", clueNp: "प्रविधि" },
-  { word: "Laptop", wordNp: "ल्यापटप", clue: "Technology", clueNp: "प्रविधि" },
-  { word: "Keyboard", wordNp: "किबोर्ड", clue: "Technology", clueNp: "प्रविधि" },
-  { word: "Mouse", wordNp: "माउस", clue: "Technology", clueNp: "प्रविधि" },
-  { word: "Camera", wordNp: "क्यामेरा", clue: "Technology", clueNp: "प्रविधि" },
-  { word: "Internet", wordNp: "इन्टरनेट", clue: "Technology", clueNp: "प्रविधि" },
+  { en: { word: "Phone", clue: "Technology" }, np: { word: "फोन", clue: "प्रविधि" } },
+  { en: { word: "Laptop", clue: "Technology" }, np: { word: "ल्यापटप", clue: "प्रविधि" } },
+  { en: { word: "Keyboard", clue: "Technology" }, np: { word: "किबोर्ड", clue: "प्रविधि" } },
+  { en: { word: "Mouse", clue: "Technology" }, np: { word: "माउस", clue: "प्रविधि" } },
+  { en: { word: "Camera", clue: "Technology" }, np: { word: "क्यामेरा", clue: "प्रविधि" } },
+  { en: { word: "Internet", clue: "Technology" }, np: { word: "इन्टरनेट", clue: "प्रविधि" } },
 
   // 🌍 Places
-  { word: "School", wordNp: "विद्यालय", clue: "Place", clueNp: "स्थान" },
-  { word: "Hospital", wordNp: "अस्पताल", clue: "Place", clueNp: "स्थान" },
-  { word: "Temple", wordNp: "मन्दिर", clue: "Place", clueNp: "स्थान" },
-  { word: "Park", wordNp: "पार्क", clue: "Place", clueNp: "स्थान" },
-  { word: "Airport", wordNp: "विमानस्थल", clue: "Place", clueNp: "स्थान" },
-  { word: "Market", wordNp: "बजार", clue: "Place", clueNp: "स्थान" },
+  { en: { word: "School", clue: "Place" }, np: { word: "विद्यालय", clue: "ठाउँ" } },
+  { en: { word: "Hospital", clue: "Place" }, np: { word: "अस्पताल", clue: "ठाउँ" } },
+  { en: { word: "Temple", clue: "Place" }, np: { word: "मन्दिर", clue: "ठाउँ" } },
+  { en: { word: "Park", clue: "Place" }, np: { word: "पार्क", clue: "ठाउँ" } },
+  { en: { word: "Airport", clue: "Place" }, np: { word: "विमानस्थल", clue: "ठाउँ" } },
+  { en: { word: "Market", clue: "Place" }, np: { word: "बजार", clue: "ठाउँ" } },
 
   // ⚽ Sports
-  { word: "Football", wordNp: "फुटबल", clue: "Sport", clueNp: "खेल" },
-  { word: "Cricket", wordNp: "क्रिकेट", clue: "Sport", clueNp: "खेल" },
-  { word: "Basketball", wordNp: "बास्केटबल", clue: "Sport", clueNp: "खेल" },
-  { word: "Tennis", wordNp: "टेनिस", clue: "Sport", clueNp: "खेल" },
-  { word: "Badminton", wordNp: "ब्याडमिन्टन", clue: "Sport", clueNp: "खेल" },
+  { en: { word: "Football", clue: "Sport" }, np: { word: "फुटबल", clue: "खेलकुद" } },
+  { en: { word: "Cricket", clue: "Sport" }, np: { word: "क्रिकेट", clue: "खेलकुद" } },
+  { en: { word: "Basketball", clue: "Sport" }, np: { word: "बास्केटबल", clue: "खेलकुद" } },
+  { en: { word: "Tennis", clue: "Sport" }, np: { word: "टेनिस", clue: "खेलकुद" } },
+  { en: { word: "Badminton", clue: "Sport" }, np: { word: "ब्याडमिन्टन", clue: "खेलकुद" } },
 
   // 🎬 Misc Fun
-  { word: "Ghost", wordNp: "भूत", clue: "Spooky", clueNp: "डर लाग्दो" },
-  { word: "Robot", wordNp: "रोबोट", clue: "Sci-fi", clueNp: "विज्ञान कथा" },
-  { word: "Superhero", wordNp: "सुपरहिरो", clue: "Character", clueNp: "चरित्र" },
-  { word: "Alien", wordNp: "एलियन", clue: "Sci-fi", clueNp: "विज्ञान कथा" },
-  { word: "Magic", wordNp: "जादू", clue: "Fantasy", clueNp: "काल्पनिक" },
-  { word: "Treasure", wordNp: "खजाना", clue: "Adventure", clueNp: "रोमाञ्चक" }
+  { en: { word: "Ghost", clue: "Spooky" }, np: { word: "भूत", clue: "डरलाग्दो" } },
+  { en: { word: "Robot", clue: "Sci-fi" }, np: { word: "रोबोट", clue: "विज्ञान कथा" } },
+  { en: { word: "Superhero", clue: "Character" }, np: { word: "सुपरहिरो", clue: "पात्र" } },
+  { en: { word: "Alien", clue: "Sci-fi" }, np: { word: "एलियन", clue: "विज्ञान कथा" } },
+  { en: { word: "Magic", clue: "Fantasy" }, np: { word: "जादु", clue: "काल्पनिक" } },
+  { en: { word: "Treasure", clue: "Adventure" }, np: { word: "खजाना", clue: "साहसिक" } }
 ];
 
-// Generate Room Code
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
@@ -111,62 +110,49 @@ function generateRoomCode() {
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  // 🔹 Join / Create Room
+  // 1. Create / Join Room
   socket.on('joinRoom', ({ name, roomCode }) => {
     let code = roomCode || generateRoomCode();
-
+    
     if (!rooms[code]) {
       rooms[code] = {
         host: socket.id,
         players: [],
-        status: 'lobby',
+        status: 'lobby', // lobby, playing, voting, results
         hints: [],
         votes: {},
         turnIndex: 0,
         wordData: null,
-        language: 'en' // 'en' or 'np'
+        lang: 'en' // Default language is English
       };
     }
 
     const room = rooms[code];
-
-    // Prevent duplicate
-    if (room.players.some(p => p.id === socket.id)) return;
-
-    room.players.push({
-      id: socket.id,
-      name,
-      role: null,
-      hasVoted: false
-    });
-
+    room.players.push({ id: socket.id, name, role: null, hasVoted: false });
+    
     socket.join(code);
-
     socket.emit('roomJoined', { code, id: socket.id });
     io.to(code).emit('updatePlayers', room.players);
   });
 
-  // 🔹 Set Language
+  // Listen for language changes from the frontend
   socket.on('setLanguage', ({ roomCode, lang }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-
-    room.language = lang;
-    io.to(roomCode).emit('gameStateUpdate', room);
+    if (rooms[roomCode]) {
+      rooms[roomCode].lang = lang; // Update the room's current language
+    }
   });
 
-  // 🔹 Start Game
+  // 2. Start Game
   socket.on('startGame', (roomCode) => {
     const room = rooms[roomCode];
-    if (!room || room.players.length < 2) return;
+    if (!room || room.players.length < 2) return; // Need at least 2 players
 
+    // Pick random word and imposter
     room.wordData = wordBank[Math.floor(Math.random() * wordBank.length)];
-
     const imposterIndex = Math.floor(Math.random() * room.players.length);
-
+    
     room.players.forEach((p, index) => {
       p.role = (index === imposterIndex) ? 'imposter' : 'normal';
-      p.hasVoted = false;
     });
 
     room.status = 'playing';
@@ -174,35 +160,32 @@ io.on('connection', (socket) => {
     room.turnIndex = 0;
     room.votes = {};
 
-    const isNp = room.language === 'np';
+    const currentLang = room.lang;
 
-    // Send private role info
+    // Send private data to each player based on current language
     room.players.forEach(p => {
       io.to(p.id).emit('gameStarted', {
         role: p.role,
-        secretWord: p.role === 'imposter'
-          ? null
-          : (isNp ? room.wordData.wordNp : room.wordData.word),
-        clue: p.role === 'imposter'
-          ? (isNp ? room.wordData.clueNp : room.wordData.clue)
-          : null
+        secretWord: p.role === 'imposter' ? null : room.wordData[currentLang].word,
+        clue: p.role === 'imposter' ? room.wordData[currentLang].clue : null
       });
     });
 
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
-  // 🔹 Submit Hint
+  // 3. Submit Hint
   socket.on('submitHint', ({ roomCode, hint }) => {
     const room = rooms[roomCode];
     if (!room) return;
 
     const currentPlayer = room.players[room.turnIndex];
-    if (!currentPlayer || currentPlayer.id !== socket.id) return;
+    if (currentPlayer.id !== socket.id) return; // Not their turn
 
     room.hints.push({ name: currentPlayer.name, hint });
     room.turnIndex++;
 
+    // Check if everyone has given a hint
     if (room.turnIndex >= room.players.length) {
       room.status = 'voting';
     }
@@ -210,97 +193,48 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
-  // 🔹 Submit Vote
+  // 4. Submit Vote
   socket.on('submitVote', ({ roomCode, votedId }) => {
     const room = rooms[roomCode];
     if (!room) return;
 
-    if (room.votes[socket.id]) return; // prevent double vote
-
     room.votes[socket.id] = votedId;
-
     const player = room.players.find(p => p.id === socket.id);
-    if (player) player.hasVoted = true;
+    if(player) player.hasVoted = true;
 
+    // Check if everyone has voted
     if (Object.keys(room.votes).length === room.players.length) {
       room.status = 'results';
-
+      
+      // Calculate votes
       const voteCounts = {};
       Object.values(room.votes).forEach(id => {
         voteCounts[id] = (voteCounts[id] || 0) + 1;
       });
 
-      let maxVotes = 0;
-      let votedOutId = null;
-      let tie = false;
-
-      for (let id in voteCounts) {
-        if (voteCounts[id] > maxVotes) {
-          maxVotes = voteCounts[id];
-          votedOutId = id;
-          tie = false;
-        } else if (voteCounts[id] === maxVotes) {
-          tie = true;
-        }
-      }
-
-      const imposter = room.players.find(p => p.role === 'imposter');
-
-      if (tie) {
-        io.to(roomCode).emit('gameEnded', {
-          votedOut: null,
-          imposterWon: true,
-          imposter: imposter.name,
-          word: room.wordData.word
-        });
-        return;
-      }
-
+      // Find player with most votes
+      const votedOutId = Object.keys(voteCounts).reduce((a, b) => voteCounts[a] > voteCounts[b] ? a : b);
       const votedOutPlayer = room.players.find(p => p.id === votedOutId);
-
+      
       const imposterWon = votedOutPlayer.role !== 'imposter';
+      const currentLang = room.lang;
 
       io.to(roomCode).emit('gameEnded', {
         votedOut: votedOutPlayer.name,
         imposterWon,
-        imposter: imposter.name,
-        word: room.wordData.word
+        imposter: room.players.find(p => p.role === 'imposter').name,
+        word: room.wordData[currentLang].word
       });
     }
 
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
-  // 🔹 Disconnect Handling
   socket.on('disconnect', () => {
-    for (const code in rooms) {
-      const room = rooms[code];
-
-      const index = room.players.findIndex(p => p.id === socket.id);
-
-      if (index !== -1) {
-        room.players.splice(index, 1);
-
-        // Change host if needed
-        if (room.host === socket.id && room.players.length > 0) {
-          room.host = room.players[0].id;
-        }
-
-        // Delete empty room
-        if (room.players.length === 0) {
-          delete rooms[code];
-        } else {
-          io.to(code).emit('updatePlayers', room.players);
-        }
-      }
-    }
-
-    console.log(`User disconnected: ${socket.id}`);
+    // Handle disconnect cleanup here
+    console.log('User disconnected');
   });
-
 });
 
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
