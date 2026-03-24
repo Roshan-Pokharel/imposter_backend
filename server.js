@@ -13,7 +13,7 @@ const io = new Server(server, {
 
 const rooms = {};
 
-// Keep your full wordBank here
+// Keep your full wordBank here (I've truncated it for brevity, but keep your 100+ words)
 const wordBank = [
 { word:"Microwave", clue:"Radiation" },
 { word:"Vacuum", clue:"Space" },
@@ -212,13 +212,24 @@ io.on('connection', (socket) => {
   socket.on('joinRoom', ({ name, roomCode, userId, action }) => {
     let code = roomCode || generateRoomCode();
     
+    // NEW: Check if room exists and is in progress
+    if (rooms[code]) {
+      const existingPlayer = rooms[code].players.find(p => p.userId === userId);
+      // If they aren't already in the room AND the game is not in the lobby, block entry
+      if (!existingPlayer && rooms[code].status !== 'lobby') {
+        socket.emit('roomError', 'Game is already in progress. You cannot join right now.');
+        return;
+      }
+    }
+
     if (!rooms[code]) {
       rooms[code] = {
         host: userId,
         players: [],
         status: 'lobby', 
         votes: {},
-        wordData: null
+        wordData: null,
+        settings: { numImposters: 1 } // NEW: Added settings object
       };
     }
 
@@ -235,6 +246,16 @@ io.on('connection', (socket) => {
     socket.join(code);
     socket.emit('roomJoined', { code });
     io.to(code).emit('updatePlayers', room.players);
+    io.to(code).emit('gameStateUpdate', room); // NEW: Send state immediately so host is recognized
+  });
+
+  // NEW: Update Room Settings (Number of Imposters)
+  socket.on('updateSettings', ({ roomCode, numImposters }) => {
+    const room = rooms[roomCode];
+    if (room && room.status === 'lobby') {
+      room.settings.numImposters = numImposters;
+      io.to(roomCode).emit('gameStateUpdate', room);
+    }
   });
 
   // 1.5 Handle Reconnections
@@ -266,15 +287,12 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     if (!room) return;
 
-    // Remove the player from the room
     room.players = room.players.filter(p => p.userId !== userId);
     socket.leave(roomCode);
 
-    // If room is empty, delete it
     if (room.players.length === 0) {
       delete rooms[roomCode];
     } else {
-      // If the host left, reassign the host to the next player
       if (room.host === userId) {
         room.host = room.players[0].userId;
       }
@@ -289,12 +307,24 @@ io.on('connection', (socket) => {
     if (!room || room.players.length < 2) return; 
 
     room.wordData = wordBank[Math.floor(Math.random() * wordBank.length)];
-    const imposterIndex = Math.floor(Math.random() * room.players.length);
     
-    room.players.forEach((p, index) => {
-      p.role = (index === imposterIndex) ? 'imposter' : 'normal';
-      p.hasVoted = false; // Reset voting status for a new round
+    // NEW: Handle multiple imposters safely
+    let actualImposters = Math.min(room.settings.numImposters, room.players.length - 1);
+    if (actualImposters < 1) actualImposters = 1;
+
+    room.players.forEach(p => {
+      p.role = 'normal';
+      p.hasVoted = false;
     });
+
+    let assigned = 0;
+    while (assigned < actualImposters) {
+      let randIdx = Math.floor(Math.random() * room.players.length);
+      if (room.players[randIdx].role !== 'imposter') {
+        room.players[randIdx].role = 'imposter';
+        assigned++;
+      }
+    }
 
     room.status = 'playing';
     room.votes = {};
@@ -307,6 +337,23 @@ io.on('connection', (socket) => {
       });
     });
 
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
+  // NEW: Force End Game (Admin only)
+  socket.on('forceEndGame', ({ roomCode, userId }) => {
+    const room = rooms[roomCode];
+    if (!room || room.host !== userId) return;
+
+    room.status = 'results';
+    const imposterNames = room.players.filter(p => p.role === 'imposter').map(p => p.name).join(', ');
+
+    io.to(roomCode).emit('gameEnded', {
+      votedOut: "No one (Host Forced End)",
+      imposterWon: true, // If host skips, imposters technically survive
+      imposter: imposterNames,
+      word: room.wordData.word
+    });
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
@@ -334,12 +381,14 @@ io.on('connection', (socket) => {
       const votedOutId = Object.keys(voteCounts).reduce((a, b) => voteCounts[a] > voteCounts[b] ? a : b);
       const votedOutPlayer = room.players.find(p => p.userId === votedOutId);
       
+      // NEW: Support multiple imposters
       const imposterWon = votedOutPlayer.role !== 'imposter';
+      const imposterNames = room.players.filter(p => p.role === 'imposter').map(p => p.name).join(', ');
 
       io.to(roomCode).emit('gameEnded', {
         votedOut: votedOutPlayer.name,
         imposterWon,
-        imposter: room.players.find(p => p.role === 'imposter').name,
+        imposter: imposterNames,
         word: room.wordData.word
       });
     }
