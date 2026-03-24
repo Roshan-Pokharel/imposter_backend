@@ -65,7 +65,6 @@ const wordBank = [
 { word:"Mouse", clue:"Pointer" },
 { word:"Code", clue:"Logic" },
 { word:"Bug", clue:"Error" },
-
 { word:"Money", clue:"Value" },
 { word:"Gold", clue:"Precious" },
 { word:"Diamond", clue:"Rare" },
@@ -76,7 +75,6 @@ const wordBank = [
 { word:"Price", clue:"Cost" },
 { word:"Debt", clue:"Owe" },
 { word:"Profit", clue:"Gain" },
-
 { word:"Time", clue:"Running" },
 { word:"Memory", clue:"Past" },
 { word:"Dream", clue:"Sleep" },
@@ -87,7 +85,6 @@ const wordBank = [
 { word:"Luck", clue:"Chance" },
 { word:"Fate", clue:"Destiny" },
 { word:"Truth", clue:"Reality" },
-
 { word:"Ocean", clue:"Deep" },
 { word:"River", clue:"Flow" },
 { word:"Mountain", clue:"High" },
@@ -98,7 +95,6 @@ const wordBank = [
 { word:"Cave", clue:"Dark" },
 { word:"Volcano", clue:"Erupt" },
 { word:"Glacier", clue:"Slow" },
-
 // Nepali 🇳🇵
 { word:"Dashain", clue:"Blessing" },
 { word:"Tihar", clue:"Lights" },
@@ -130,7 +126,6 @@ const wordBank = [
 { word:"Topi", clue:"Identity" },
 { word:"Daura Suruwal", clue:"Formal" },
 { word:"Gunyo Cholo", clue:"Ceremony" },
-
 // Remaining handcrafted expansions
 { word:"Robot", clue:"Artificial" },
 { word:"AI", clue:"Learning" },
@@ -142,7 +137,6 @@ const wordBank = [
 { word:"Wave", clue:"Frequency" },
 { word:"Energy", clue:"Power" },
 { word:"Gravity", clue:"Pull" },
-
 { word:"Game", clue:"Play" },
 { word:"Puzzle", clue:"Solve" },
 { word:"Secret", clue:"Hidden" },
@@ -153,7 +147,6 @@ const wordBank = [
 { word:"Escape", clue:"Run" },
 { word:"Chase", clue:"Follow" },
 { word:"Hide", clue:"Cover" },
-
 { word:"Mirror", clue:"Reflect" },
 { word:"Glass", clue:"Transparent" },
 { word:"Paper", clue:"Write" },
@@ -164,7 +157,6 @@ const wordBank = [
 { word:"Chair", clue:"Sit" },
 { word:"Table", clue:"Surface" },
 { word:"Bed", clue:"Rest" },
-
 { word:"Doorbell", clue:"Ring" },
 { word:"Fan", clue:"Air" },
 { word:"Light", clue:"Bright" },
@@ -175,7 +167,6 @@ const wordBank = [
 { word:"Generator", clue:"Backup" },
 { word:"Solar", clue:"Sunlight" },
 { word:"BatteryPack", clue:"Portable" },
-
 { word:"Teacher", clue:"Guide" },
 { word:"Student", clue:"Learn" },
 { word:"Exam", clue:"Pressure" },
@@ -186,7 +177,6 @@ const wordBank = [
 { word:"Homework", clue:"Task" },
 { word:"Classroom", clue:"Lesson" },
 { word:"Uniform", clue:"Dress" },
-
 { word:"Doctor", clue:"Heal" },
 { word:"Nurse", clue:"Care" },
 { word:"Hospital", clue:"Emergency" },
@@ -196,7 +186,7 @@ const wordBank = [
 { word:"Ambulance", clue:"Siren" },
 { word:"Surgery", clue:"Operation" },
 { word:"Mask", clue:"Protect" },
-{ word:"Virus", clue:"Infect" },
+{ word:"Virus", clue:"Infect" }
 ];
 
 function generateRoomCode() {
@@ -217,7 +207,7 @@ io.on('connection', (socket) => {
         status: 'lobby', 
         votes: {},
         wordData: null,
-        settings: { numImposters: 1, isRandomImposters: false } 
+        settings: { numImposters: 1, isRandomImposters: false }
       };
     }
 
@@ -234,18 +224,7 @@ io.on('connection', (socket) => {
     socket.join(code);
     socket.emit('roomJoined', { code });
     io.to(code).emit('updatePlayers', room.players);
-    socket.emit('gameStateUpdate', room); 
-  });
-
-  // 1.2 Update Settings
-  socket.on('updateSettings', ({ roomCode, numImposters, isRandomImposters }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-    
-    if (numImposters !== undefined) room.settings.numImposters = numImposters;
-    if (isRandomImposters !== undefined) room.settings.isRandomImposters = isRandomImposters;
-    
-    io.to(roomCode).emit('gameStateUpdate', room);
+    io.to(code).emit('gameStateUpdate', room);
   });
 
   // 1.5 Handle Reconnections
@@ -277,12 +256,15 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     if (!room) return;
 
+    // Remove the player from the room
     room.players = room.players.filter(p => p.userId !== userId);
     socket.leave(roomCode);
 
+    // If room is empty, delete it
     if (room.players.length === 0) {
       delete rooms[roomCode];
     } else {
+      // If the host left, reassign the host to the next player
       if (room.host === userId) {
         room.host = room.players[0].userId;
       }
@@ -291,25 +273,48 @@ io.on('connection', (socket) => {
     }
   });
 
+  // 1.7 Kick Player
+  socket.on('kickPlayer', ({ roomCode, targetId }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+    
+    const targetPlayer = room.players.find(p => p.userId === targetId);
+    if (targetPlayer) {
+      io.to(targetPlayer.socketId).emit('kicked');
+      
+      const targetSocket = io.sockets.sockets.get(targetPlayer.socketId);
+      if (targetSocket) {
+         targetSocket.leave(roomCode);
+      }
+      
+      room.players = room.players.filter(p => p.userId !== targetId);
+      io.to(roomCode).emit('updatePlayers', room.players);
+      io.to(roomCode).emit('gameStateUpdate', room);
+    }
+  });
+
+  // 1.8 Update Settings
+  socket.on('updateSettings', ({ roomCode, numImposters, isRandomImposters }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+    
+    if (!room.settings) room.settings = { numImposters: 1, isRandomImposters: false };
+    if (numImposters !== undefined) room.settings.numImposters = numImposters;
+    if (isRandomImposters !== undefined) room.settings.isRandomImposters = isRandomImposters;
+
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
   // 2. Start Game
   socket.on('startGame', (roomCode) => {
     const room = rooms[roomCode];
     if (!room || room.players.length < 2) return; 
 
     room.wordData = wordBank[Math.floor(Math.random() * wordBank.length)];
+    const imposterIndex = Math.floor(Math.random() * room.players.length);
     
-    let imposterCount = room.settings.numImposters;
-    if (room.settings.isRandomImposters) {
-      imposterCount = Math.floor(Math.random() * (room.players.length + 1));
-    } else {
-      imposterCount = Math.min(imposterCount, room.players.length);
-    }
-
-    let shuffledPlayers = [...room.players].sort(() => 0.5 - Math.random());
-    let imposterIds = shuffledPlayers.slice(0, imposterCount).map(p => p.userId);
-    
-    room.players.forEach((p) => {
-      p.role = imposterIds.includes(p.userId) ? 'imposter' : 'normal';
+    room.players.forEach((p, index) => {
+      p.role = (index === imposterIndex) ? 'imposter' : 'normal';
       p.hasVoted = false; 
     });
 
@@ -350,16 +355,11 @@ io.on('connection', (socket) => {
       const votedOutPlayer = room.players.find(p => p.userId === votedOutId);
       
       const imposterWon = votedOutPlayer.role !== 'imposter';
-      
-      const impostersNames = room.players
-        .filter(p => p.role === 'imposter')
-        .map(p => p.name)
-        .join(', ');
 
       io.to(roomCode).emit('gameEnded', {
         votedOut: votedOutPlayer.name,
         imposterWon,
-        imposter: impostersNames || 'None! (0 Imposters)',
+        imposter: room.players.find(p => p.role === 'imposter')?.name || "Unknown",
         word: room.wordData.word
       });
     }
@@ -367,13 +367,20 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
-  // 4. Force End / Next Game
+  // 4. Force End Game
   socket.on('forceEndGame', ({ roomCode }) => {
     const room = rooms[roomCode];
     if (!room) return;
-    room.status = 'lobby';
-    room.votes = {};
-    room.players.forEach(p => { p.hasVoted = false; p.role = null; });
+
+    room.status = 'results';
+    
+    io.to(roomCode).emit('gameEnded', {
+      votedOut: "Skipped (Force Ended)",
+      imposterWon: false, // Defaulting to normal win on skip, can be adjusted
+      imposter: room.players.find(p => p.role === 'imposter')?.name || "Unknown",
+      word: room.wordData ? room.wordData.word : "Unknown"
+    });
+    
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
@@ -381,24 +388,14 @@ io.on('connection', (socket) => {
   socket.on('playAgain', ({ roomCode }) => {
     const room = rooms[roomCode];
     if (!room) return;
-    room.status = 'lobby';
-    room.votes = {};
-    room.players.forEach(p => { p.hasVoted = false; p.role = null; });
-    io.to(roomCode).emit('gameStateUpdate', room);
-  });
 
-  // 6. Kick Player
-  socket.on('kickPlayer', ({ roomCode, targetId }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
+    room.status = 'lobby';
+    room.players.forEach(p => { 
+        p.role = null; 
+        p.hasVoted = false; 
+    });
     
-    const targetPlayer = room.players.find(p => p.userId === targetId);
-    if (targetPlayer) {
-      io.to(targetPlayer.socketId).emit('kicked');
-      room.players = room.players.filter(p => p.userId !== targetId);
-      io.to(roomCode).emit('updatePlayers', room.players);
-      io.to(roomCode).emit('gameStateUpdate', room);
-    }
+    io.to(roomCode).emit('gameStateUpdate', room);
   });
 
   socket.on('disconnect', () => {
