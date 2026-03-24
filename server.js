@@ -15,178 +15,178 @@ const rooms = {};
 
 // Keep your full wordBank here
 const wordBank = [
-{ word:"Microwave", clue:"Radiation" },
-{ word:"Vacuum", clue:"Space" },
-{ word:"Shadow", clue:"Darkness" },
-{ word:"Clock", clue:"Ticking" },
-{ word:"Battery", clue:"Charge" },
-{ word:"Magnet", clue:"Attraction" },
-{ word:"Ice", clue:"Melting" },
-{ word:"Fire", clue:"Heat" },
-{ word:"Knife", clue:"Sharp" },
-{ word:"Book", clue:"Knowledge" },
-{ word:"Sun", clue:"Energy" },
-{ word:"Moon", clue:"Night" },
-{ word:"Rain", clue:"Falling" },
-{ word:"Wind", clue:"Invisible" },
-{ word:"Star", clue:"Distant" },
-{ word:"Sky", clue:"Above" },
-{ word:"Cloud", clue:"Floating" },
-{ word:"Storm", clue:"Chaos" },
-{ word:"Thunder", clue:"Loud" },
-{ word:"Lightning", clue:"Flash" },
-{ word:"Key", clue:"Unlock" },
-{ word:"Lock", clue:"Secure" },
-{ word:"Password", clue:"Access" },
-{ word:"Map", clue:"Direction" },
-{ word:"Compass", clue:"North" },
-{ word:"Path", clue:"Way" },
-{ word:"Road", clue:"Travel" },
-{ word:"Bridge", clue:"Connect" },
-{ word:"Tunnel", clue:"Underground" },
-{ word:"Gate", clue:"Entry" },
-{ word:"Brain", clue:"Thinking" },
-{ word:"Heart", clue:"Beating" },
-{ word:"Eye", clue:"Vision" },
-{ word:"Ear", clue:"Hearing" },
-{ word:"Hand", clue:"Grip" },
-{ word:"Leg", clue:"Walk" },
-{ word:"Blood", clue:"Flow" },
-{ word:"Bone", clue:"Support" },
-{ word:"Skin", clue:"Cover" },
-{ word:"Voice", clue:"Sound" },
-{ word:"Phone", clue:"Call" },
-{ word:"Camera", clue:"Capture" },
-{ word:"Speaker", clue:"Sound" },
-{ word:"Screen", clue:"Display" },
-{ word:"Internet", clue:"Network" },
-{ word:"Laptop", clue:"Portable" },
-{ word:"Keyboard", clue:"Typing" },
-{ word:"Mouse", clue:"Pointer" },
-{ word:"Code", clue:"Logic" },
-{ word:"Bug", clue:"Error" },
-{ word:"Money", clue:"Value" },
-{ word:"Gold", clue:"Precious" },
-{ word:"Diamond", clue:"Rare" },
-{ word:"Bank", clue:"Storage" },
-{ word:"Coin", clue:"Currency" },
-{ word:"Market", clue:"Trade" },
-{ word:"Shop", clue:"Buy" },
-{ word:"Price", clue:"Cost" },
-{ word:"Debt", clue:"Owe" },
-{ word:"Profit", clue:"Gain" },
-{ word:"Time", clue:"Running" },
-{ word:"Memory", clue:"Past" },
-{ word:"Dream", clue:"Sleep" },
-{ word:"Fear", clue:"Emotion" },
-{ word:"Love", clue:"Connection" },
-{ word:"Hate", clue:"Opposite" },
-{ word:"Hope", clue:"Future" },
-{ word:"Luck", clue:"Chance" },
-{ word:"Fate", clue:"Destiny" },
-{ word:"Truth", clue:"Reality" },
-{ word:"Ocean", clue:"Deep" },
-{ word:"River", clue:"Flow" },
-{ word:"Mountain", clue:"High" },
-{ word:"Forest", clue:"Wild" },
-{ word:"Desert", clue:"Dry" },
-{ word:"Island", clue:"Alone" },
-{ word:"Valley", clue:"Low" },
-{ word:"Cave", clue:"Dark" },
-{ word:"Volcano", clue:"Erupt" },
-{ word:"Glacier", clue:"Slow" },
-// Nepali 🇳🇵
-{ word:"Dashain", clue:"Blessing" },
-{ word:"Tihar", clue:"Lights" },
-{ word:"Holi", clue:"Colors" },
-{ word:"Teej", clue:"Fasting" },
-{ word:"Chhath", clue:"Sun" },
-{ word:"Maghe Sankranti", clue:"Season" },
-{ word:"Losar", clue:"NewYear" },
-{ word:"Momo", clue:"Steam" },
-{ word:"Dal Bhat", clue:"Energy" },
-{ word:"Sel Roti", clue:"Ring" },
-{ word:"Gundruk", clue:"Fermented" },
-{ word:"Dhido", clue:"Traditional" },
-{ word:"Yomari", clue:"Sweet" },
-{ word:"Chatamari", clue:"Flat" },
-{ word:"Thukpa", clue:"Soup" },
-{ word:"Everest", clue:"Highest" },
-{ word:"Annapurna", clue:"Range" },
-{ word:"Kathmandu", clue:"Capital" },
-{ word:"Pokhara", clue:"Lake" },
-{ word:"Lumbini", clue:"Birthplace" },
-{ word:"Bhaktapur", clue:"Heritage" },
-{ word:"Patan", clue:"Art" },
-{ word:"Mustang", clue:"Remote" },
-{ word:"Pashupatinath", clue:"Sacred" },
-{ word:"Swayambhunath", clue:"Monkey" },
-{ word:"Boudhanath", clue:"Stupa" },
-{ word:"Khukuri", clue:"Blade" },
-{ word:"Topi", clue:"Identity" },
-{ word:"Daura Suruwal", clue:"Formal" },
-{ word:"Gunyo Cholo", clue:"Ceremony" },
-// Remaining handcrafted expansions
-{ word:"Robot", clue:"Artificial" },
-{ word:"AI", clue:"Learning" },
-{ word:"Server", clue:"Response" },
-{ word:"CloudStorage", clue:"Remote" },
-{ word:"Data", clue:"Information" },
-{ word:"Algorithm", clue:"Steps" },
-{ word:"Signal", clue:"Transmit" },
-{ word:"Wave", clue:"Frequency" },
-{ word:"Energy", clue:"Power" },
-{ word:"Gravity", clue:"Pull" },
-{ word:"Game", clue:"Play" },
-{ word:"Puzzle", clue:"Solve" },
-{ word:"Secret", clue:"Hidden" },
-{ word:"Lie", clue:"False" },
-{ word:"Clue", clue:"Hint" },
-{ word:"Mystery", clue:"Unknown" },
-{ word:"Trap", clue:"Catch" },
-{ word:"Escape", clue:"Run" },
-{ word:"Chase", clue:"Follow" },
-{ word:"Hide", clue:"Cover" },
-{ word:"Mirror", clue:"Reflect" },
-{ word:"Glass", clue:"Transparent" },
-{ word:"Paper", clue:"Write" },
-{ word:"Pen", clue:"Ink" },
-{ word:"Pencil", clue:"Sketch" },
-{ word:"Eraser", clue:"Remove" },
-{ word:"Bag", clue:"Carry" },
-{ word:"Chair", clue:"Sit" },
-{ word:"Table", clue:"Surface" },
-{ word:"Bed", clue:"Rest" },
-{ word:"Doorbell", clue:"Ring" },
-{ word:"Fan", clue:"Air" },
-{ word:"Light", clue:"Bright" },
-{ word:"Switch", clue:"Toggle" },
-{ word:"Wire", clue:"Connect" },
-{ word:"Plug", clue:"Insert" },
-{ word:"Socket", clue:"Power" },
-{ word:"Generator", clue:"Backup" },
-{ word:"Solar", clue:"Sunlight" },
-{ word:"BatteryPack", clue:"Portable" },
-{ word:"Teacher", clue:"Guide" },
-{ word:"Student", clue:"Learn" },
-{ word:"Exam", clue:"Pressure" },
-{ word:"Result", clue:"Outcome" },
-{ word:"School", clue:"Routine" },
-{ word:"College", clue:"Future" },
-{ word:"Library", clue:"Silent" },
-{ word:"Homework", clue:"Task" },
-{ word:"Classroom", clue:"Lesson" },
-{ word:"Uniform", clue:"Dress" },
-{ word:"Doctor", clue:"Heal" },
-{ word:"Nurse", clue:"Care" },
-{ word:"Hospital", clue:"Emergency" },
-{ word:"Medicine", clue:"Cure" },
-{ word:"Injection", clue:"Needle" },
-{ word:"Tablet", clue:"Dose" },
-{ word:"Ambulance", clue:"Siren" },
-{ word:"Surgery", clue:"Operation" },
-{ word:"Mask", clue:"Protect" },
-{ word:"Virus", clue:"Infect" }
+  { word:"Microwave", clue:"Radiation" },
+  { word:"Vacuum", clue:"Space" },
+  { word:"Shadow", clue:"Darkness" },
+  { word:"Clock", clue:"Ticking" },
+  { word:"Battery", clue:"Charge" },
+  { word:"Magnet", clue:"Attraction" },
+  { word:"Ice", clue:"Melting" },
+  { word:"Fire", clue:"Heat" },
+  { word:"Knife", clue:"Sharp" },
+  { word:"Book", clue:"Knowledge" },
+  { word:"Sun", clue:"Energy" },
+  { word:"Moon", clue:"Night" },
+  { word:"Rain", clue:"Falling" },
+  { word:"Wind", clue:"Invisible" },
+  { word:"Star", clue:"Distant" },
+  { word:"Sky", clue:"Above" },
+  { word:"Cloud", clue:"Floating" },
+  { word:"Storm", clue:"Chaos" },
+  { word:"Thunder", clue:"Loud" },
+  { word:"Lightning", clue:"Flash" },
+  { word:"Key", clue:"Unlock" },
+  { word:"Lock", clue:"Secure" },
+  { word:"Password", clue:"Access" },
+  { word:"Map", clue:"Direction" },
+  { word:"Compass", clue:"North" },
+  { word:"Path", clue:"Way" },
+  { word:"Road", clue:"Travel" },
+  { word:"Bridge", clue:"Connect" },
+  { word:"Tunnel", clue:"Underground" },
+  { word:"Gate", clue:"Entry" },
+  { word:"Brain", clue:"Thinking" },
+  { word:"Heart", clue:"Beating" },
+  { word:"Eye", clue:"Vision" },
+  { word:"Ear", clue:"Hearing" },
+  { word:"Hand", clue:"Grip" },
+  { word:"Leg", clue:"Walk" },
+  { word:"Blood", clue:"Flow" },
+  { word:"Bone", clue:"Support" },
+  { word:"Skin", clue:"Cover" },
+  { word:"Voice", clue:"Sound" },
+  { word:"Phone", clue:"Call" },
+  { word:"Camera", clue:"Capture" },
+  { word:"Speaker", clue:"Sound" },
+  { word:"Screen", clue:"Display" },
+  { word:"Internet", clue:"Network" },
+  { word:"Laptop", clue:"Portable" },
+  { word:"Keyboard", clue:"Typing" },
+  { word:"Mouse", clue:"Pointer" },
+  { word:"Code", clue:"Logic" },
+  { word:"Bug", clue:"Error" },
+  { word:"Money", clue:"Value" },
+  { word:"Gold", clue:"Precious" },
+  { word:"Diamond", clue:"Rare" },
+  { word:"Bank", clue:"Storage" },
+  { word:"Coin", clue:"Currency" },
+  { word:"Market", clue:"Trade" },
+  { word:"Shop", clue:"Buy" },
+  { word:"Price", clue:"Cost" },
+  { word:"Debt", clue:"Owe" },
+  { word:"Profit", clue:"Gain" },
+  { word:"Time", clue:"Running" },
+  { word:"Memory", clue:"Past" },
+  { word:"Dream", clue:"Sleep" },
+  { word:"Fear", clue:"Emotion" },
+  { word:"Love", clue:"Connection" },
+  { word:"Hate", clue:"Opposite" },
+  { word:"Hope", clue:"Future" },
+  { word:"Luck", clue:"Chance" },
+  { word:"Fate", clue:"Destiny" },
+  { word:"Truth", clue:"Reality" },
+  { word:"Ocean", clue:"Deep" },
+  { word:"River", clue:"Flow" },
+  { word:"Mountain", clue:"High" },
+  { word:"Forest", clue:"Wild" },
+  { word:"Desert", clue:"Dry" },
+  { word:"Island", clue:"Alone" },
+  { word:"Valley", clue:"Low" },
+  { word:"Cave", clue:"Dark" },
+  { word:"Volcano", clue:"Erupt" },
+  { word:"Glacier", clue:"Slow" },
+  // Nepali 🇳🇵
+  { word:"Dashain", clue:"Blessing" },
+  { word:"Tihar", clue:"Lights" },
+  { word:"Holi", clue:"Colors" },
+  { word:"Teej", clue:"Fasting" },
+  { word:"Chhath", clue:"Sun" },
+  { word:"Maghe Sankranti", clue:"Season" },
+  { word:"Losar", clue:"NewYear" },
+  { word:"Momo", clue:"Steam" },
+  { word:"Dal Bhat", clue:"Energy" },
+  { word:"Sel Roti", clue:"Ring" },
+  { word:"Gundruk", clue:"Fermented" },
+  { word:"Dhido", clue:"Traditional" },
+  { word:"Yomari", clue:"Sweet" },
+  { word:"Chatamari", clue:"Flat" },
+  { word:"Thukpa", clue:"Soup" },
+  { word:"Everest", clue:"Highest" },
+  { word:"Annapurna", clue:"Range" },
+  { word:"Kathmandu", clue:"Capital" },
+  { word:"Pokhara", clue:"Lake" },
+  { word:"Lumbini", clue:"Birthplace" },
+  { word:"Bhaktapur", clue:"Heritage" },
+  { word:"Patan", clue:"Art" },
+  { word:"Mustang", clue:"Remote" },
+  { word:"Pashupatinath", clue:"Sacred" },
+  { word:"Swayambhunath", clue:"Monkey" },
+  { word:"Boudhanath", clue:"Stupa" },
+  { word:"Khukuri", clue:"Blade" },
+  { word:"Topi", clue:"Identity" },
+  { word:"Daura Suruwal", clue:"Formal" },
+  { word:"Gunyo Cholo", clue:"Ceremony" },
+  // Remaining handcrafted expansions
+  { word:"Robot", clue:"Artificial" },
+  { word:"AI", clue:"Learning" },
+  { word:"Server", clue:"Response" },
+  { word:"CloudStorage", clue:"Remote" },
+  { word:"Data", clue:"Information" },
+  { word:"Algorithm", clue:"Steps" },
+  { word:"Signal", clue:"Transmit" },
+  { word:"Wave", clue:"Frequency" },
+  { word:"Energy", clue:"Power" },
+  { word:"Gravity", clue:"Pull" },
+  { word:"Game", clue:"Play" },
+  { word:"Puzzle", clue:"Solve" },
+  { word:"Secret", clue:"Hidden" },
+  { word:"Lie", clue:"False" },
+  { word:"Clue", clue:"Hint" },
+  { word:"Mystery", clue:"Unknown" },
+  { word:"Trap", clue:"Catch" },
+  { word:"Escape", clue:"Run" },
+  { word:"Chase", clue:"Follow" },
+  { word:"Hide", clue:"Cover" },
+  { word:"Mirror", clue:"Reflect" },
+  { word:"Glass", clue:"Transparent" },
+  { word:"Paper", clue:"Write" },
+  { word:"Pen", clue:"Ink" },
+  { word:"Pencil", clue:"Sketch" },
+  { word:"Eraser", clue:"Remove" },
+  { word:"Bag", clue:"Carry" },
+  { word:"Chair", clue:"Sit" },
+  { word:"Table", clue:"Surface" },
+  { word:"Bed", clue:"Rest" },
+  { word:"Doorbell", clue:"Ring" },
+  { word:"Fan", clue:"Air" },
+  { word:"Light", clue:"Bright" },
+  { word:"Switch", clue:"Toggle" },
+  { word:"Wire", clue:"Connect" },
+  { word:"Plug", clue:"Insert" },
+  { word:"Socket", clue:"Power" },
+  { word:"Generator", clue:"Backup" },
+  { word:"Solar", clue:"Sunlight" },
+  { word:"BatteryPack", clue:"Portable" },
+  { word:"Teacher", clue:"Guide" },
+  { word:"Student", clue:"Learn" },
+  { word:"Exam", clue:"Pressure" },
+  { word:"Result", clue:"Outcome" },
+  { word:"School", clue:"Routine" },
+  { word:"College", clue:"Future" },
+  { word:"Library", clue:"Silent" },
+  { word:"Homework", clue:"Task" },
+  { word:"Classroom", clue:"Lesson" },
+  { word:"Uniform", clue:"Dress" },
+  { word:"Doctor", clue:"Heal" },
+  { word:"Nurse", clue:"Care" },
+  { word:"Hospital", clue:"Emergency" },
+  { word:"Medicine", clue:"Cure" },
+  { word:"Injection", clue:"Needle" },
+  { word:"Tablet", clue:"Dose" },
+  { word:"Ambulance", clue:"Siren" },
+  { word:"Surgery", clue:"Operation" },
+  { word:"Mask", clue:"Protect" },
+  { word:"Virus", clue:"Infect" },
 ];
 
 function generateRoomCode() {
@@ -207,7 +207,11 @@ io.on('connection', (socket) => {
         status: 'lobby', 
         votes: {},
         wordData: null,
-        settings: { numImposters: 1, isRandomImposters: false }
+        // ADDED: Initialize settings here so the frontend syncs properly
+        settings: {
+          numImposters: 1,
+          isRandomImposters: false
+        }
       };
     }
 
@@ -224,7 +228,7 @@ io.on('connection', (socket) => {
     socket.join(code);
     socket.emit('roomJoined', { code });
     io.to(code).emit('updatePlayers', room.players);
-    io.to(code).emit('gameStateUpdate', room);
+    io.to(code).emit('gameStateUpdate', room); // Sync initial settings
   });
 
   // 1.5 Handle Reconnections
@@ -251,20 +255,67 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ADDED: Listen for settings changes from the host
+  socket.on('updateSettings', ({ roomCode, numImposters, isRandomImposters }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    if (numImposters !== undefined) room.settings.numImposters = numImposters;
+    if (isRandomImposters !== undefined) room.settings.isRandomImposters = isRandomImposters;
+    
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
+  // ADDED: Listen for 'Play Again' from host
+  socket.on('playAgain', ({ roomCode }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+    
+    room.status = 'lobby';
+    room.votes = {};
+    room.wordData = null;
+    room.players.forEach(p => { p.role = null; p.hasVoted = false; });
+    
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
+  // ADDED: Listen for 'Force End Game' from host
+  socket.on('forceEndGame', ({ roomCode }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    room.status = 'lobby';
+    room.votes = {};
+    room.players.forEach(p => { p.role = null; p.hasVoted = false; });
+    
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
+  // ADDED: Listen for Kick Player events
+  socket.on('kickPlayer', ({ roomCode, targetId }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    const targetPlayer = room.players.find(p => p.userId === targetId);
+    if (targetPlayer) {
+      io.to(targetPlayer.socketId).emit('kicked');
+      room.players = room.players.filter(p => p.userId !== targetId);
+      io.to(roomCode).emit('updatePlayers', room.players);
+      io.to(roomCode).emit('gameStateUpdate', room);
+    }
+  });
+
   // 1.6 Leave Room
   socket.on('leaveRoom', ({ roomCode, userId }) => {
     const room = rooms[roomCode];
     if (!room) return;
 
-    // Remove the player from the room
     room.players = room.players.filter(p => p.userId !== userId);
     socket.leave(roomCode);
 
-    // If room is empty, delete it
     if (room.players.length === 0) {
       delete rooms[roomCode];
     } else {
-      // If the host left, reassign the host to the next player
       if (room.host === userId) {
         room.host = room.players[0].userId;
       }
@@ -273,49 +324,31 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 1.7 Kick Player
-  socket.on('kickPlayer', ({ roomCode, targetId }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-    
-    const targetPlayer = room.players.find(p => p.userId === targetId);
-    if (targetPlayer) {
-      io.to(targetPlayer.socketId).emit('kicked');
-      
-      const targetSocket = io.sockets.sockets.get(targetPlayer.socketId);
-      if (targetSocket) {
-         targetSocket.leave(roomCode);
-      }
-      
-      room.players = room.players.filter(p => p.userId !== targetId);
-      io.to(roomCode).emit('updatePlayers', room.players);
-      io.to(roomCode).emit('gameStateUpdate', room);
-    }
-  });
-
-  // 1.8 Update Settings
-  socket.on('updateSettings', ({ roomCode, numImposters, isRandomImposters }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-    
-    if (!room.settings) room.settings = { numImposters: 1, isRandomImposters: false };
-    if (numImposters !== undefined) room.settings.numImposters = numImposters;
-    if (isRandomImposters !== undefined) room.settings.isRandomImposters = isRandomImposters;
-
-    io.to(roomCode).emit('gameStateUpdate', room);
-  });
-
   // 2. Start Game
   socket.on('startGame', (roomCode) => {
     const room = rooms[roomCode];
     if (!room || room.players.length < 2) return; 
 
     room.wordData = wordBank[Math.floor(Math.random() * wordBank.length)];
-    const imposterIndex = Math.floor(Math.random() * room.players.length);
     
-    room.players.forEach((p, index) => {
-      p.role = (index === imposterIndex) ? 'imposter' : 'normal';
-      p.hasVoted = false; 
+    // FIXED: Calculate imposter count properly based on settings
+    let impostersCount = room.settings.numImposters;
+    
+    if (room.settings.isRandomImposters) {
+      // Pick a random number of imposters between 1 and total players
+      impostersCount = Math.floor(Math.random() * room.players.length) + 1;
+    }
+
+    // Safeguard: Ensure at least 1 imposter, and max equals the number of players
+    impostersCount = Math.max(1, Math.min(impostersCount, room.players.length));
+
+    // Randomly shuffle the players array to select imposters
+    const shuffledPlayers = [...room.players].sort(() => 0.5 - Math.random());
+    const imposterIds = shuffledPlayers.slice(0, impostersCount).map(p => p.userId);
+
+    room.players.forEach(p => {
+      p.role = imposterIds.includes(p.userId) ? 'imposter' : 'normal';
+      p.hasVoted = false; // Reset voting status
     });
 
     room.status = 'playing';
@@ -343,6 +376,7 @@ io.on('connection', (socket) => {
     room.votes[voter.userId] = votedId;
     voter.hasVoted = true;
 
+    // Trigger end game ONLY if everyone has submitted their vote
     if (Object.keys(room.votes).length === room.players.length) {
       room.status = 'results';
       
@@ -351,50 +385,27 @@ io.on('connection', (socket) => {
         voteCounts[id] = (voteCounts[id] || 0) + 1;
       });
 
+      // Find the player with the most votes
       const votedOutId = Object.keys(voteCounts).reduce((a, b) => voteCounts[a] > voteCounts[b] ? a : b);
       const votedOutPlayer = room.players.find(p => p.userId === votedOutId);
       
+      // Imposter won if the voted out player was a normal player
       const imposterWon = votedOutPlayer.role !== 'imposter';
+
+      // FIXED: Get all imposters as a comma-separated string
+      const imposterNames = room.players
+        .filter(p => p.role === 'imposter')
+        .map(p => p.name)
+        .join(', ');
 
       io.to(roomCode).emit('gameEnded', {
         votedOut: votedOutPlayer.name,
         imposterWon,
-        imposter: room.players.find(p => p.role === 'imposter')?.name || "Unknown",
+        imposter: imposterNames,
         word: room.wordData.word
       });
     }
 
-    io.to(roomCode).emit('gameStateUpdate', room);
-  });
-
-  // 4. Force End Game
-  socket.on('forceEndGame', ({ roomCode }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-
-    room.status = 'results';
-    
-    io.to(roomCode).emit('gameEnded', {
-      votedOut: "Skipped (Force Ended)",
-      imposterWon: false, // Defaulting to normal win on skip, can be adjusted
-      imposter: room.players.find(p => p.role === 'imposter')?.name || "Unknown",
-      word: room.wordData ? room.wordData.word : "Unknown"
-    });
-    
-    io.to(roomCode).emit('gameStateUpdate', room);
-  });
-
-  // 5. Play Again
-  socket.on('playAgain', ({ roomCode }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-
-    room.status = 'lobby';
-    room.players.forEach(p => { 
-        p.role = null; 
-        p.hasVoted = false; 
-    });
-    
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
