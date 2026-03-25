@@ -13,7 +13,6 @@ const io = new Server(server, {
 
 const rooms = {};
 
-// Updated wordBank to include multiple clues for multiple imposters
 const wordBank = [
   { word: "Microwave", clues: ["Radiation", "Kitchen Appliance", "Heat"] },
   { word: "Vacuum", clues: ["Space", "Empty", "Suction"] },
@@ -270,7 +269,6 @@ const wordBank = [
   { word: "Politics", clues: ["Power", "Speech", "Debate"] }
 ];
 
-// Helper to expand single clues dynamically if you add old formats back
 const getClues = (wordData) => {
   if (wordData.clues && wordData.clues.length > 0) return wordData.clues;
   return [wordData.clue, `Think about: ${wordData.clue}`, `Related to: ${wordData.clue}`];
@@ -283,7 +281,6 @@ function generateRoomCode() {
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  // 1. Create / Join Room
   socket.on('joinRoom', ({ name, roomCode, userId, action }) => {
     let code = roomCode || generateRoomCode();
     
@@ -294,7 +291,10 @@ io.on('connection', (socket) => {
         status: 'lobby', 
         votes: {},
         wordData: null,
-        settings: { numImposters: 1, isRandomImposters: false } // Added Settings
+        settings: { numImposters: 1, isRandomImposters: false },
+        currentTurnIndex: 0,
+        startingPlayerIndex: 0, // NEW: Tracks who starts the turn per round
+        actualNumImposters: 1 // NEW: Store dynamically
       };
     }
 
@@ -314,7 +314,6 @@ io.on('connection', (socket) => {
     io.to(code).emit('gameStateUpdate', room);
   });
 
-  // 1.5 Handle Reconnections
   socket.on('rejoinRoom', ({ name, roomCode, userId }) => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -338,7 +337,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 1.6 Leave Room
   socket.on('leaveRoom', ({ roomCode, userId }) => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -352,12 +350,17 @@ io.on('connection', (socket) => {
       if (room.host === userId) {
         room.host = room.players[0].userId;
       }
+      if (room.currentTurnIndex >= room.players.length) {
+        room.currentTurnIndex = 0;
+      }
+      if (room.startingPlayerIndex >= room.players.length) {
+        room.startingPlayerIndex = 0;
+      }
       io.to(roomCode).emit('updatePlayers', room.players);
       io.to(roomCode).emit('gameStateUpdate', room);
     }
   });
 
-  // NEW: Settings Handlers
   socket.on('updateSettings', ({ roomCode, numImposters, isRandomImposters }) => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -366,7 +369,13 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
-  // 2. Start Game
+  socket.on('nextTurn', ({ roomCode }) => {
+    const room = rooms[roomCode];
+    if (!room || !room.players.length) return;
+    room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
   socket.on('startGame', (roomCode) => {
     const room = rooms[roomCode];
     if (!room || room.players.length < 2) return; 
@@ -378,10 +387,9 @@ io.on('connection', (socket) => {
     if (room.settings.isRandomImposters) {
       numImps = Math.floor(Math.random() * (room.players.length - 1)) + 1; 
     }
-    // Prevent more imposters than players minus one
     numImps = Math.min(Math.max(1, numImps), room.players.length - 1);
+    room.actualNumImposters = numImps; // Store actual so clients know how many to vote for
 
-    // Shuffle and pick imposters
     const shuffledIndices = room.players.map((_, i) => i).sort(() => 0.5 - Math.random());
     const imposterIndices = shuffledIndices.slice(0, numImps);
 
@@ -390,7 +398,6 @@ io.on('connection', (socket) => {
       p.hasVoted = false;
       
       if (p.role === 'imposter') {
-        // Assign a unique clue if available, looping if there are more imposters than clues
         const imposterNumber = imposterIndices.indexOf(index);
         p.assignedClue = cluesAvailable[imposterNumber % cluesAvailable.length];
       } else {
@@ -400,6 +407,13 @@ io.on('connection', (socket) => {
 
     room.status = 'playing';
     room.votes = {};
+    
+    // Assign starting player dynamically based on turn rotation
+    room.startingPlayerIndex = room.startingPlayerIndex || 0;
+    if (room.startingPlayerIndex >= room.players.length) {
+        room.startingPlayerIndex = 0;
+    }
+    room.currentTurnIndex = room.startingPlayerIndex;
 
     room.players.forEach(p => {
       io.to(p.socketId).emit('gameStarted', {
@@ -412,47 +426,84 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
-  // 3. Submit Vote
-  socket.on('submitVote', ({ roomCode, votedId }) => {
+  socket.on('submitVote', ({ roomCode, votedIds }) => {
     const room = rooms[roomCode];
     if (!room) return;
 
     const voter = room.players.find(p => p.socketId === socket.id);
     if (!voter) return;
 
-    room.votes[voter.userId] = votedId;
+    // Convert single values to array (legacy fallback vs new multi-selection)
+    room.votes[voter.userId] = Array.isArray(votedIds) ? votedIds : [votedIds];
     voter.hasVoted = true;
 
     if (Object.keys(room.votes).length === room.players.length) {
-      room.status = 'results';
-      
       const voteCounts = {};
-      Object.values(room.votes).forEach(id => {
-        voteCounts[id] = (voteCounts[id] || 0) + 1;
+      
+      // Count votes allowing arrays of selected players
+      Object.values(room.votes).forEach(voteArray => {
+        voteArray.forEach(id => {
+            voteCounts[id] = (voteCounts[id] || 0) + 1;
+        });
       });
 
-      const votedOutId = Object.keys(voteCounts).reduce((a, b) => voteCounts[a] > voteCounts[b] ? a : b);
-      const votedOutPlayer = room.players.find(p => p.userId === votedOutId);
-      
-      const imposterWon = votedOutPlayer.role !== 'imposter';
+      // Get top voted individuals up to the amount of imposters
+      const sortedIds = Object.keys(voteCounts).sort((a, b) => voteCounts[b] - voteCounts[a]);
+      const votedOutIds = sortedIds.slice(0, room.actualNumImposters);
+      const votedOutPlayers = votedOutIds.map(id => room.players.find(p => p.userId === id));
+
       const impostersList = room.players.filter(p => p.role === 'imposter').map(p => p.name).join(', ');
 
-      io.to(roomCode).emit('gameEnded', {
-        votedOut: votedOutPlayer.name,
-        imposterWon,
-        imposter: impostersList,
-        word: room.wordData.word
-      });
+      // If all top voted out players are strictly imposters, normal team wins (or goes to guess)
+      const allVotedOutAreImposters = votedOutPlayers.every(p => p && p.role === 'imposter');
+
+      if (allVotedOutAreImposters) {
+        room.status = 'imposterGuess';
+        room.votedOutPlayers = votedOutPlayers; // Saved as Array now
+        io.to(roomCode).emit('imposterGuessing', {
+          votedOut: votedOutPlayers.map(p => p.name).join(' & '),
+          votedOutIds: votedOutIds,
+          imposter: impostersList,
+          word: room.wordData.word
+        });
+      } else {
+        room.status = 'results';
+        io.to(roomCode).emit('gameEnded', {
+          votedOut: votedOutPlayers.map(p => p ? p.name : 'Unknown').join(', '),
+          imposterWon: true,
+          imposter: impostersList,
+          word: room.wordData.word
+        });
+      }
     }
 
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
-  // NEW: Missing Lobby Handlers
+  socket.on('resolveImposterGuess', ({ roomCode, correct }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+    
+    room.status = 'results';
+    const impostersList = room.players.filter(p => p.role === 'imposter').map(p => p.name).join(', ');
+    
+    io.to(roomCode).emit('gameEnded', {
+      votedOut: room.votedOutPlayers.map(p => p.name).join(' & '),
+      imposterWon: correct, 
+      imposter: impostersList,
+      word: room.wordData.word
+    });
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
   socket.on('playAgain', ({ roomCode }) => {
     const room = rooms[roomCode];
     if (!room) return;
     room.status = 'lobby';
+    
+    // Increment the starting player so a different player goes first next round
+    room.startingPlayerIndex = ((room.startingPlayerIndex || 0) + 1) % room.players.length;
+    
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
