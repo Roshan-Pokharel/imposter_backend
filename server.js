@@ -1,7 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const OpenAI = require('openai'); 
 
 const app = express();
 app.use(cors());
@@ -11,8 +13,15 @@ const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
+// Initialize Groq using the OpenAI SDK compatibility
+const openai = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY, 
+  baseURL: "https://api.groq.com/openai/v1", 
+});
+
 const rooms = {};
 
+// --- KEEPING EXISTING WORD BANK AS A FALLBACK ---
 const wordBank = [
   { word: "Microwave", clues: ["Radiation", "Kitchen Appliance", "Heat"] },
   { word: "Vacuum", clues: ["Space", "Empty", "Suction"] },
@@ -291,10 +300,10 @@ io.on('connection', (socket) => {
         status: 'lobby', 
         votes: {},
         wordData: null,
-        settings: { numImposters: 1, isRandomImposters: false },
+        settings: { numImposters: 1, isRandomImposters: false, category: 'Random' },
         currentTurnIndex: 0,
-        startingPlayerIndex: 0, // NEW: Tracks who starts the turn per round
-        actualNumImposters: 1 // NEW: Store dynamically
+        startingPlayerIndex: 0,
+        actualNumImposters: 1
       };
     }
 
@@ -361,11 +370,12 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('updateSettings', ({ roomCode, numImposters, isRandomImposters }) => {
+  socket.on('updateSettings', ({ roomCode, numImposters, isRandomImposters, category }) => {
     const room = rooms[roomCode];
     if (!room) return;
     if (numImposters !== undefined) room.settings.numImposters = numImposters;
     if (isRandomImposters !== undefined) room.settings.isRandomImposters = isRandomImposters;
+    if (category !== undefined) room.settings.category = category;
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
@@ -376,20 +386,61 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
-  socket.on('startGame', (roomCode) => {
+  // --- START GAME ALONG WITH GROQ AI GENERATION ---
+  socket.on('startGame', async (roomCode) => {
     const room = rooms[roomCode];
     if (!room || room.players.length < 2) return; 
 
-    room.wordData = wordBank[Math.floor(Math.random() * wordBank.length)];
-    const cluesAvailable = getClues(room.wordData).sort(() => 0.5 - Math.random());
-    
+    // Let clients know game generation is processing
+    io.to(roomCode).emit('generatingGame');
+
     let numImps = room.settings.numImposters || 1;
     if (room.settings.isRandomImposters) {
       numImps = Math.floor(Math.random() * (room.players.length - 1)) + 1; 
     }
     numImps = Math.min(Math.max(1, numImps), room.players.length - 1);
-    room.actualNumImposters = numImps; // Store actual so clients know how many to vote for
+    room.actualNumImposters = numImps;
 
+    // --- GROQ AI WORD GENERATION LOGIC ---
+    let generatedWordData = null;
+    try {
+      const selectedCategory = room.settings.category === 'Random' ? 'a random popular topic' : room.settings.category;
+      
+      const response = await openai.chat.completions.create({
+        model: "llama-3.1-8b-instant", // Extremely fast model on Groq
+        response_format: { type: "json_object" }, // Forces strictly JSON output
+        messages: [
+          { 
+            role: "system", 
+            content: `You are a backend game server generating data for a game. You must output a JSON object containing a "word" string and a "clues" array of 3 strings. Example format: {"word": "Apple", "clues": ["Fruit", "Red", "Crisp"]}` 
+          },
+          { 
+            role: "user", 
+            content: `Generate a recognizable secret word and exactly 3 short clues for the category: ${selectedCategory}. 
+            The clues should be 1-3 words max. Ensure the JSON structure is perfectly formatted.` 
+          }
+        ],
+        temperature: 0.8,
+      });
+
+      const text = response.choices[0].message.content.trim();
+      generatedWordData = JSON.parse(text);
+      console.log("Groq AI Generated Word:", generatedWordData);
+
+    } catch (error) {
+      console.error("Groq AI Generation failed. Falling back to local wordBank.", error.message);
+    }
+
+    // Set wordData: Use Groq if successful, otherwise fallback
+    if (generatedWordData && generatedWordData.word && generatedWordData.clues) {
+      room.wordData = generatedWordData;
+    } else {
+      let availableWords = wordBank;
+      room.wordData = availableWords[Math.floor(Math.random() * availableWords.length)];
+    }
+    // ---------------------------------
+
+    const cluesAvailable = getClues(room.wordData).sort(() => 0.5 - Math.random());
     const shuffledIndices = room.players.map((_, i) => i).sort(() => 0.5 - Math.random());
     const imposterIndices = shuffledIndices.slice(0, numImps);
 
@@ -408,7 +459,6 @@ io.on('connection', (socket) => {
     room.status = 'playing';
     room.votes = {};
     
-    // Assign starting player dynamically based on turn rotation
     room.startingPlayerIndex = room.startingPlayerIndex || 0;
     if (room.startingPlayerIndex >= room.players.length) {
         room.startingPlayerIndex = 0;
@@ -433,33 +483,29 @@ io.on('connection', (socket) => {
     const voter = room.players.find(p => p.socketId === socket.id);
     if (!voter) return;
 
-    // Convert single values to array (legacy fallback vs new multi-selection)
     room.votes[voter.userId] = Array.isArray(votedIds) ? votedIds : [votedIds];
     voter.hasVoted = true;
 
     if (Object.keys(room.votes).length === room.players.length) {
       const voteCounts = {};
       
-      // Count votes allowing arrays of selected players
       Object.values(room.votes).forEach(voteArray => {
         voteArray.forEach(id => {
             voteCounts[id] = (voteCounts[id] || 0) + 1;
         });
       });
 
-      // Get top voted individuals up to the amount of imposters
       const sortedIds = Object.keys(voteCounts).sort((a, b) => voteCounts[b] - voteCounts[a]);
       const votedOutIds = sortedIds.slice(0, room.actualNumImposters);
       const votedOutPlayers = votedOutIds.map(id => room.players.find(p => p.userId === id));
 
       const impostersList = room.players.filter(p => p.role === 'imposter').map(p => p.name).join(', ');
 
-      // If all top voted out players are strictly imposters, normal team wins (or goes to guess)
       const allVotedOutAreImposters = votedOutPlayers.every(p => p && p.role === 'imposter');
 
       if (allVotedOutAreImposters) {
         room.status = 'imposterGuess';
-        room.votedOutPlayers = votedOutPlayers; // Saved as Array now
+        room.votedOutPlayers = votedOutPlayers; 
         io.to(roomCode).emit('imposterGuessing', {
           votedOut: votedOutPlayers.map(p => p.name).join(' & '),
           votedOutIds: votedOutIds,
@@ -500,10 +546,7 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     if (!room) return;
     room.status = 'lobby';
-    
-    // Increment the starting player so a different player goes first next round
     room.startingPlayerIndex = ((room.startingPlayerIndex || 0) + 1) % room.players.length;
-    
     io.to(roomCode).emit('gameStateUpdate', room);
   });
 
