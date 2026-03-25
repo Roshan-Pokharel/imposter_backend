@@ -412,12 +412,12 @@ io.on('connection', (socket) => {
         messages: [
           { 
             role: "system", 
-            content: `You are a backend game server generating data for a game. You must output a JSON object containing a "word" string and a "clues" array of 3 strings. Example format: {"word": "Apple", "clues": ["Fruit", "Red", "Crisp"]}` 
+            content: `You are a backend game server generating data for a game. You must output a JSON object containing a "word" string and a "clues" array of 3 strings. Example format: {"word": "Apple", "clues": ["Fruit", "Red", "Crisp"]} try not to repeat words and ensure clues are concise and relevant to the word. The word should be recognizable but not too easy, and the clues should be helpful but not give it away immediately.` 
           },
           { 
             role: "user", 
             content: `Generate a recognizable secret word and exactly 3 short clues for the category: ${selectedCategory}. 
-            The clues should be 1-3 words max. Ensure the JSON structure is perfectly formatted.` 
+            The clues should be 1-3 words max. Ensure the JSON structure is perfectly formatted. don't repeat words from the same game session if possible. The word should be a single noun and not a proper noun (no names of people or places).` 
           }
         ],
         temperature: 0.8,
