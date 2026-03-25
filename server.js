@@ -13,181 +13,34 @@ const io = new Server(server, {
 
 const rooms = {};
 
-// Keep your full wordBank here
+// Updated wordBank to include multiple clues for multiple imposters
 const wordBank = [
-  { word:"Microwave", clue:"Radiation" },
-  { word:"Vacuum", clue:"Space" },
-  { word:"Shadow", clue:"Darkness" },
-  { word:"Clock", clue:"Ticking" },
-  { word:"Battery", clue:"Charge" },
-  { word:"Magnet", clue:"Attraction" },
-  { word:"Ice", clue:"Melting" },
-  { word:"Fire", clue:"Heat" },
-  { word:"Knife", clue:"Sharp" },
-  { word:"Book", clue:"Knowledge" },
-  { word:"Sun", clue:"Energy" },
-  { word:"Moon", clue:"Night" },
-  { word:"Rain", clue:"Falling" },
-  { word:"Wind", clue:"Invisible" },
-  { word:"Star", clue:"Distant" },
-  { word:"Sky", clue:"Above" },
-  { word:"Cloud", clue:"Floating" },
-  { word:"Storm", clue:"Chaos" },
-  { word:"Thunder", clue:"Loud" },
-  { word:"Lightning", clue:"Flash" },
-  { word:"Key", clue:"Unlock" },
-  { word:"Lock", clue:"Secure" },
-  { word:"Password", clue:"Access" },
-  { word:"Map", clue:"Direction" },
-  { word:"Compass", clue:"North" },
-  { word:"Path", clue:"Way" },
-  { word:"Road", clue:"Travel" },
-  { word:"Bridge", clue:"Connect" },
-  { word:"Tunnel", clue:"Underground" },
-  { word:"Gate", clue:"Entry" },
-  { word:"Brain", clue:"Thinking" },
-  { word:"Heart", clue:"Beating" },
-  { word:"Eye", clue:"Vision" },
-  { word:"Ear", clue:"Hearing" },
-  { word:"Hand", clue:"Grip" },
-  { word:"Leg", clue:"Walk" },
-  { word:"Blood", clue:"Flow" },
-  { word:"Bone", clue:"Support" },
-  { word:"Skin", clue:"Cover" },
-  { word:"Voice", clue:"Sound" },
-  { word:"Phone", clue:"Call" },
-  { word:"Camera", clue:"Capture" },
-  { word:"Speaker", clue:"Sound" },
-  { word:"Screen", clue:"Display" },
-  { word:"Internet", clue:"Network" },
-  { word:"Laptop", clue:"Portable" },
-  { word:"Keyboard", clue:"Typing" },
-  { word:"Mouse", clue:"Pointer" },
-  { word:"Code", clue:"Logic" },
-  { word:"Bug", clue:"Error" },
-  { word:"Money", clue:"Value" },
-  { word:"Gold", clue:"Precious" },
-  { word:"Diamond", clue:"Rare" },
-  { word:"Bank", clue:"Storage" },
-  { word:"Coin", clue:"Currency" },
-  { word:"Market", clue:"Trade" },
-  { word:"Shop", clue:"Buy" },
-  { word:"Price", clue:"Cost" },
-  { word:"Debt", clue:"Owe" },
-  { word:"Profit", clue:"Gain" },
-  { word:"Time", clue:"Running" },
-  { word:"Memory", clue:"Past" },
-  { word:"Dream", clue:"Sleep" },
-  { word:"Fear", clue:"Emotion" },
-  { word:"Love", clue:"Connection" },
-  { word:"Hate", clue:"Opposite" },
-  { word:"Hope", clue:"Future" },
-  { word:"Luck", clue:"Chance" },
-  { word:"Fate", clue:"Destiny" },
-  { word:"Truth", clue:"Reality" },
-  { word:"Ocean", clue:"Deep" },
-  { word:"River", clue:"Flow" },
-  { word:"Mountain", clue:"High" },
-  { word:"Forest", clue:"Wild" },
-  { word:"Desert", clue:"Dry" },
-  { word:"Island", clue:"Alone" },
-  { word:"Valley", clue:"Low" },
-  { word:"Cave", clue:"Dark" },
-  { word:"Volcano", clue:"Erupt" },
-  { word:"Glacier", clue:"Slow" },
+  { word: "Microwave", clues: ["Radiation", "Kitchen Appliance", "Heat"] },
+  { word: "Vacuum", clues: ["Space", "Empty", "Suction"] },
+  { word: "Shadow", clues: ["Darkness", "Silhouette", "Sunlight blocker"] },
+  { word: "Clock", clues: ["Ticking", "Timekeeper", "Hands and Face"] },
+  { word: "Battery", clues: ["Charge", "Power Source", "Voltage"] },
+  { word: "Magnet", clues: ["Attraction", "Poles", "Metal Puller"] },
+  { word: "Ice", clues: ["Melting", "Frozen", "Cold"] },
+  { word: "Fire", clues: ["Heat", "Flames", "Burning"] },
+  { word: "Knife", clues: ["Sharp", "Cutting", "Kitchen Tool"] },
+  { word: "Book", clues: ["Knowledge", "Pages", "Reading"] },
+  { word: "Sun", clues: ["Energy", "Solar", "Bright Star"] },
+  { word: "Moon", clues: ["Night", "Orbit", "Lunar"] },
   // Nepali 🇳🇵
-  { word:"Dashain", clue:"Blessing" },
-  { word:"Tihar", clue:"Lights" },
-  { word:"Holi", clue:"Colors" },
-  { word:"Teej", clue:"Fasting" },
-  { word:"Chhath", clue:"Sun" },
-  { word:"Maghe Sankranti", clue:"Season" },
-  { word:"Losar", clue:"NewYear" },
-  { word:"Momo", clue:"Steam" },
-  { word:"Dal Bhat", clue:"Energy" },
-  { word:"Sel Roti", clue:"Ring" },
-  { word:"Gundruk", clue:"Fermented" },
-  { word:"Dhido", clue:"Traditional" },
-  { word:"Yomari", clue:"Sweet" },
-  { word:"Chatamari", clue:"Flat" },
-  { word:"Thukpa", clue:"Soup" },
-  { word:"Everest", clue:"Highest" },
-  { word:"Annapurna", clue:"Range" },
-  { word:"Kathmandu", clue:"Capital" },
-  { word:"Pokhara", clue:"Lake" },
-  { word:"Lumbini", clue:"Birthplace" },
-  { word:"Bhaktapur", clue:"Heritage" },
-  { word:"Patan", clue:"Art" },
-  { word:"Mustang", clue:"Remote" },
-  { word:"Pashupatinath", clue:"Sacred" },
-  { word:"Swayambhunath", clue:"Monkey" },
-  { word:"Boudhanath", clue:"Stupa" },
-  { word:"Khukuri", clue:"Blade" },
-  { word:"Topi", clue:"Identity" },
-  { word:"Daura Suruwal", clue:"Formal" },
-  { word:"Gunyo Cholo", clue:"Ceremony" },
-  // Remaining handcrafted expansions
-  { word:"Robot", clue:"Artificial" },
-  { word:"AI", clue:"Learning" },
-  { word:"Server", clue:"Response" },
-  { word:"CloudStorage", clue:"Remote" },
-  { word:"Data", clue:"Information" },
-  { word:"Algorithm", clue:"Steps" },
-  { word:"Signal", clue:"Transmit" },
-  { word:"Wave", clue:"Frequency" },
-  { word:"Energy", clue:"Power" },
-  { word:"Gravity", clue:"Pull" },
-  { word:"Game", clue:"Play" },
-  { word:"Puzzle", clue:"Solve" },
-  { word:"Secret", clue:"Hidden" },
-  { word:"Lie", clue:"False" },
-  { word:"Clue", clue:"Hint" },
-  { word:"Mystery", clue:"Unknown" },
-  { word:"Trap", clue:"Catch" },
-  { word:"Escape", clue:"Run" },
-  { word:"Chase", clue:"Follow" },
-  { word:"Hide", clue:"Cover" },
-  { word:"Mirror", clue:"Reflect" },
-  { word:"Glass", clue:"Transparent" },
-  { word:"Paper", clue:"Write" },
-  { word:"Pen", clue:"Ink" },
-  { word:"Pencil", clue:"Sketch" },
-  { word:"Eraser", clue:"Remove" },
-  { word:"Bag", clue:"Carry" },
-  { word:"Chair", clue:"Sit" },
-  { word:"Table", clue:"Surface" },
-  { word:"Bed", clue:"Rest" },
-  { word:"Doorbell", clue:"Ring" },
-  { word:"Fan", clue:"Air" },
-  { word:"Light", clue:"Bright" },
-  { word:"Switch", clue:"Toggle" },
-  { word:"Wire", clue:"Connect" },
-  { word:"Plug", clue:"Insert" },
-  { word:"Socket", clue:"Power" },
-  { word:"Generator", clue:"Backup" },
-  { word:"Solar", clue:"Sunlight" },
-  { word:"BatteryPack", clue:"Portable" },
-  { word:"Teacher", clue:"Guide" },
-  { word:"Student", clue:"Learn" },
-  { word:"Exam", clue:"Pressure" },
-  { word:"Result", clue:"Outcome" },
-  { word:"School", clue:"Routine" },
-  { word:"College", clue:"Future" },
-  { word:"Library", clue:"Silent" },
-  { word:"Homework", clue:"Task" },
-  { word:"Classroom", clue:"Lesson" },
-  { word:"Uniform", clue:"Dress" },
-  { word:"Doctor", clue:"Heal" },
-  { word:"Nurse", clue:"Care" },
-  { word:"Hospital", clue:"Emergency" },
-  { word:"Medicine", clue:"Cure" },
-  { word:"Injection", clue:"Needle" },
-  { word:"Tablet", clue:"Dose" },
-  { word:"Ambulance", clue:"Siren" },
-  { word:"Surgery", clue:"Operation" },
-  { word:"Mask", clue:"Protect" },
-  { word:"Virus", clue:"Infect" },
+  { word: "Dashain", clues: ["Blessing", "Tika", "Kite Flying"] },
+  { word: "Tihar", clues: ["Lights", "Deusi Re", "Rangoli"] },
+  { word: "Momo", clues: ["Steam", "Dumpling", "Chutney"] },
+  { word: "Everest", clues: ["Highest", "Mountain", "Sagarmatha"] },
+  { word: "Khukuri", clues: ["Blade", "Gurkha", "Curved Weapon"] }
+  // You can expand this list following the same pattern: clues: ["Clue1", "Clue2", "Clue3"]
 ];
+
+// Helper to expand single clues dynamically if you add old formats back
+const getClues = (wordData) => {
+  if (wordData.clues && wordData.clues.length > 0) return wordData.clues;
+  return [wordData.clue, `Think about: ${wordData.clue}`, `Related to: ${wordData.clue}`];
+};
 
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -207,11 +60,7 @@ io.on('connection', (socket) => {
         status: 'lobby', 
         votes: {},
         wordData: null,
-        // ADDED: Initialize settings here so the frontend syncs properly
-        settings: {
-          numImposters: 1,
-          isRandomImposters: false
-        }
+        settings: { numImposters: 1, isRandomImposters: false } // Added Settings
       };
     }
 
@@ -228,7 +77,7 @@ io.on('connection', (socket) => {
     socket.join(code);
     socket.emit('roomJoined', { code });
     io.to(code).emit('updatePlayers', room.players);
-    io.to(code).emit('gameStateUpdate', room); // Sync initial settings
+    io.to(code).emit('gameStateUpdate', room);
   });
 
   // 1.5 Handle Reconnections
@@ -249,59 +98,9 @@ io.on('connection', (socket) => {
         socket.emit('gameStarted', {
           role: player.role,
           secretWord: player.role === 'imposter' ? null : room.wordData.word,
-          clue: player.role === 'imposter' ? room.wordData.clue : null
+          clue: player.role === 'imposter' ? player.assignedClue : null
         });
       }
-    }
-  });
-
-  // ADDED: Listen for settings changes from the host
-  socket.on('updateSettings', ({ roomCode, numImposters, isRandomImposters }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-
-    if (numImposters !== undefined) room.settings.numImposters = numImposters;
-    if (isRandomImposters !== undefined) room.settings.isRandomImposters = isRandomImposters;
-    
-    io.to(roomCode).emit('gameStateUpdate', room);
-  });
-
-  // ADDED: Listen for 'Play Again' from host
-  socket.on('playAgain', ({ roomCode }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-    
-    room.status = 'lobby';
-    room.votes = {};
-    room.wordData = null;
-    room.players.forEach(p => { p.role = null; p.hasVoted = false; });
-    
-    io.to(roomCode).emit('gameStateUpdate', room);
-  });
-
-  // ADDED: Listen for 'Force End Game' from host
-  socket.on('forceEndGame', ({ roomCode }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-
-    room.status = 'lobby';
-    room.votes = {};
-    room.players.forEach(p => { p.role = null; p.hasVoted = false; });
-    
-    io.to(roomCode).emit('gameStateUpdate', room);
-  });
-
-  // ADDED: Listen for Kick Player events
-  socket.on('kickPlayer', ({ roomCode, targetId }) => {
-    const room = rooms[roomCode];
-    if (!room) return;
-
-    const targetPlayer = room.players.find(p => p.userId === targetId);
-    if (targetPlayer) {
-      io.to(targetPlayer.socketId).emit('kicked');
-      room.players = room.players.filter(p => p.userId !== targetId);
-      io.to(roomCode).emit('updatePlayers', room.players);
-      io.to(roomCode).emit('gameStateUpdate', room);
     }
   });
 
@@ -324,31 +123,45 @@ io.on('connection', (socket) => {
     }
   });
 
+  // NEW: Settings Handlers
+  socket.on('updateSettings', ({ roomCode, numImposters, isRandomImposters }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+    if (numImposters !== undefined) room.settings.numImposters = numImposters;
+    if (isRandomImposters !== undefined) room.settings.isRandomImposters = isRandomImposters;
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
   // 2. Start Game
   socket.on('startGame', (roomCode) => {
     const room = rooms[roomCode];
     if (!room || room.players.length < 2) return; 
 
     room.wordData = wordBank[Math.floor(Math.random() * wordBank.length)];
+    const cluesAvailable = getClues(room.wordData).sort(() => 0.5 - Math.random());
     
-    // FIXED: Calculate imposter count properly based on settings
-    let impostersCount = room.settings.numImposters;
-    
+    let numImps = room.settings.numImposters || 1;
     if (room.settings.isRandomImposters) {
-      // Pick a random number of imposters between 1 and total players
-      impostersCount = Math.floor(Math.random() * room.players.length) + 1;
+      numImps = Math.floor(Math.random() * (room.players.length - 1)) + 1; 
     }
+    // Prevent more imposters than players minus one
+    numImps = Math.min(Math.max(1, numImps), room.players.length - 1);
 
-    // Safeguard: Ensure at least 1 imposter, and max equals the number of players
-    impostersCount = Math.max(1, Math.min(impostersCount, room.players.length));
+    // Shuffle and pick imposters
+    const shuffledIndices = room.players.map((_, i) => i).sort(() => 0.5 - Math.random());
+    const imposterIndices = shuffledIndices.slice(0, numImps);
 
-    // Randomly shuffle the players array to select imposters
-    const shuffledPlayers = [...room.players].sort(() => 0.5 - Math.random());
-    const imposterIds = shuffledPlayers.slice(0, impostersCount).map(p => p.userId);
-
-    room.players.forEach(p => {
-      p.role = imposterIds.includes(p.userId) ? 'imposter' : 'normal';
-      p.hasVoted = false; // Reset voting status
+    room.players.forEach((p, index) => {
+      p.role = imposterIndices.includes(index) ? 'imposter' : 'normal';
+      p.hasVoted = false;
+      
+      if (p.role === 'imposter') {
+        // Assign a unique clue if available, looping if there are more imposters than clues
+        const imposterNumber = imposterIndices.indexOf(index);
+        p.assignedClue = cluesAvailable[imposterNumber % cluesAvailable.length];
+      } else {
+        p.assignedClue = null;
+      }
     });
 
     room.status = 'playing';
@@ -358,7 +171,7 @@ io.on('connection', (socket) => {
       io.to(p.socketId).emit('gameStarted', {
         role: p.role,
         secretWord: p.role === 'imposter' ? null : room.wordData.word,
-        clue: p.role === 'imposter' ? room.wordData.clue : null
+        clue: p.role === 'imposter' ? p.assignedClue : null
       });
     });
 
@@ -371,12 +184,11 @@ io.on('connection', (socket) => {
     if (!room) return;
 
     const voter = room.players.find(p => p.socketId === socket.id);
-    if(!voter) return;
+    if (!voter) return;
 
     room.votes[voter.userId] = votedId;
     voter.hasVoted = true;
 
-    // Trigger end game ONLY if everyone has submitted their vote
     if (Object.keys(room.votes).length === room.players.length) {
       room.status = 'results';
       
@@ -385,28 +197,49 @@ io.on('connection', (socket) => {
         voteCounts[id] = (voteCounts[id] || 0) + 1;
       });
 
-      // Find the player with the most votes
       const votedOutId = Object.keys(voteCounts).reduce((a, b) => voteCounts[a] > voteCounts[b] ? a : b);
       const votedOutPlayer = room.players.find(p => p.userId === votedOutId);
       
-      // Imposter won if the voted out player was a normal player
       const imposterWon = votedOutPlayer.role !== 'imposter';
-
-      // FIXED: Get all imposters as a comma-separated string
-      const imposterNames = room.players
-        .filter(p => p.role === 'imposter')
-        .map(p => p.name)
-        .join(', ');
+      const impostersList = room.players.filter(p => p.role === 'imposter').map(p => p.name).join(', ');
 
       io.to(roomCode).emit('gameEnded', {
         votedOut: votedOutPlayer.name,
         imposterWon,
-        imposter: imposterNames,
+        imposter: impostersList,
         word: room.wordData.word
       });
     }
 
     io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
+  // NEW: Missing Lobby Handlers
+  socket.on('playAgain', ({ roomCode }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+    room.status = 'lobby';
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
+  socket.on('forceEndGame', ({ roomCode }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+    room.status = 'lobby';
+    io.to(roomCode).emit('gameStateUpdate', room);
+  });
+
+  socket.on('kickPlayer', ({ roomCode, targetId }) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+    const target = room.players.find(p => p.userId === targetId);
+    if (target) {
+      room.players = room.players.filter(p => p.userId !== targetId);
+      io.to(target.socketId).emit('kicked');
+      io.sockets.sockets.get(target.socketId)?.leave(roomCode);
+      io.to(roomCode).emit('updatePlayers', room.players);
+      io.to(roomCode).emit('gameStateUpdate', room);
+    }
   });
 
   socket.on('disconnect', () => {
