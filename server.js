@@ -300,6 +300,7 @@ io.on('connection', (socket) => {
         status: 'lobby', 
         votes: {},
         wordData: null,
+        usedWords: [], // NEW: Track words generated in this room to avoid repeats
         settings: { numImposters: 1, isRandomImposters: false, category: 'Random' },
         currentTurnIndex: 0,
         startingPlayerIndex: 0,
@@ -406,53 +407,28 @@ io.on('connection', (socket) => {
     try {
       const selectedCategory = room.settings.category === 'Random' ? 'a random popular topic' : room.settings.category;
       
+      // Get the list of previously used words to avoid repetition
+      const usedWordsList = room.usedWords && room.usedWords.length > 0 
+        ? room.usedWords.join(', ') 
+        : "None";
+      
       const response = await openai.chat.completions.create({
-  model: "llama-3.1-8b-instant", // Fast model
-  response_format: { type: "json_object" }, // Force JSON output
-  messages: [
-    { 
-      role: "system", 
-      content: `
-You are a backend game server generating data for a word guessing game.
-
-The players are not native English speakers, so use SIMPLE and COMMON English.
-
-Rules:
-- Use easy words (A2–B1 level).
-- Word should be from daily life (things people see/use often).
-- Avoid difficult, rare, or technical words.
-- Do NOT use proper nouns (no people, cities, brands).
-- Clues must be very simple and clear.
-- Each clue must be 1–2 words only.
-- Avoid confusing synonyms or complex vocabulary.
-- Make clues helpful but not too obvious.
-
-Output format strictly:
-{
-  "word": "Apple",
-  "clues": ["Fruit", "Red", "Sweet"]
-}
-      `
-    },
-    { 
-      role: "user", 
-      content: `
-Generate ONE word and exactly 3 simple clues for category: ${selectedCategory}.
-
-Rules:
-- Word must be a common noun.
-- Word must be easy to understand.
-- Clues must be short (max 2 words).
-- Use simple English only.
-- Do not repeat words if possible.
-- Make it fun and easy to guess.
-
-Return ONLY JSON.
-      `
-    }
-  ],
-  temperature: 0.6,
-});
+        model: "llama-3.1-8b-instant", // Extremely fast model on Groq
+        response_format: { type: "json_object" }, // Forces strictly JSON output
+        messages: [
+          { 
+            role: "system", 
+            content: `You are a backend game server generating data for a game. You must output a JSON object containing a "word" string and a "clues" array of 3 strings. Example format: {"word": "Apple", "clues": ["Fruit", "Red", "Crisp"]} try not to repeat words and ensure clues are concise and relevant to the word. The word should be recognizable but not too easy, and the clues should be helpful but not give it away immediately.` 
+          },
+          { 
+            role: "user", 
+            content: `Generate a recognizable secret word and exactly 3 short clues for the category: ${selectedCategory}. 
+            CRITICAL: Do NOT generate any of the following previously used words: [${usedWordsList}]. 
+            The clues should be 1-3 words max. Ensure the JSON structure is perfectly formatted.` 
+          }
+        ],
+        temperature: 0.8,
+      });
 
       const text = response.choices[0].message.content.trim();
       generatedWordData = JSON.parse(text);
@@ -466,8 +442,21 @@ Return ONLY JSON.
     if (generatedWordData && generatedWordData.word && generatedWordData.clues) {
       room.wordData = generatedWordData;
     } else {
-      let availableWords = wordBank;
+      // Filter out words that have already been played in this room
+      let availableWords = wordBank.filter(w => !room.usedWords.includes(w.word));
+      
+      // If by some miracle they played through the entire wordbank, reset the available words
+      if (availableWords.length === 0) {
+          availableWords = wordBank;
+      }
+      
       room.wordData = availableWords[Math.floor(Math.random() * availableWords.length)];
+    }
+    
+    // Track the new word so it isn't repeated next time
+    if (room.wordData && room.wordData.word) {
+        if (!room.usedWords) room.usedWords = [];
+        room.usedWords.push(room.wordData.word);
     }
     // ---------------------------------
 
