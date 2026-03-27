@@ -407,21 +407,52 @@ io.on('connection', (socket) => {
       const selectedCategory = room.settings.category === 'Random' ? 'a random popular topic' : room.settings.category;
       
       const response = await openai.chat.completions.create({
-        model: "llama-3.1-8b-instant", // Extremely fast model on Groq
-        response_format: { type: "json_object" }, // Forces strictly JSON output
-        messages: [
-          { 
-            role: "system", 
-            content: `You are a backend game server generating data for a game. You must output a JSON object containing a "word" string and a "clues" array of 3 strings. Example format: {"word": "Apple", "clues": ["Fruit", "Red", "Crisp"]} try not to repeat words and ensure clues are concise and relevant to the word. The word should be recognizable but not too easy, and the clues should be helpful but not give it away immediately.` 
-          },
-          { 
-            role: "user", 
-            content: `Generate a recognizable secret word and exactly 3 short clues for the category: ${selectedCategory}. 
-            The clues should be 1-3 words max. Ensure the JSON structure is perfectly formatted. don't repeat words from the same game session if possible. The word should be a single noun and not a proper noun (no names of people or places).` 
-          }
-        ],
-        temperature: 0.8,
-      });
+  model: "llama-3.1-8b-instant", // Fast model
+  response_format: { type: "json_object" }, // Force JSON output
+  messages: [
+    { 
+      role: "system", 
+      content: `
+You are a backend game server generating data for a word guessing game.
+
+The players are not native English speakers, so use SIMPLE and COMMON English.
+
+Rules:
+- Use easy words (A2–B1 level).
+- Word should be from daily life (things people see/use often).
+- Avoid difficult, rare, or technical words.
+- Do NOT use proper nouns (no people, cities, brands).
+- Clues must be very simple and clear.
+- Each clue must be 1–2 words only.
+- Avoid confusing synonyms or complex vocabulary.
+- Make clues helpful but not too obvious.
+
+Output format strictly:
+{
+  "word": "Apple",
+  "clues": ["Fruit", "Red", "Sweet"]
+}
+      `
+    },
+    { 
+      role: "user", 
+      content: `
+Generate ONE word and exactly 3 simple clues for category: ${selectedCategory}.
+
+Rules:
+- Word must be a common noun.
+- Word must be easy to understand.
+- Clues must be short (max 2 words).
+- Use simple English only.
+- Do not repeat words if possible.
+- Make it fun and easy to guess.
+
+Return ONLY JSON.
+      `
+    }
+  ],
+  temperature: 0.6,
+});
 
       const text = response.choices[0].message.content.trim();
       generatedWordData = JSON.parse(text);
