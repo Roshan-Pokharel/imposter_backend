@@ -4,6 +4,8 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const OpenAI = require('openai'); 
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -20,6 +22,25 @@ const openai = new OpenAI({
 });
 
 const rooms = {};
+
+// --- PERSISTENT WORD MEMORY SYSTEM ---
+const USED_WORDS_FILE = path.join(__dirname, 'usedWords.json');
+let roomUsedWords = {};
+
+// Load previous history if the file exists (so it remembers across days/restarts)
+if (fs.existsSync(USED_WORDS_FILE)) {
+  try {
+    roomUsedWords = JSON.parse(fs.readFileSync(USED_WORDS_FILE, 'utf8'));
+  } catch (e) {
+    console.error("Error reading usedWords.json:", e);
+  }
+}
+
+// Helper to save history to file
+function saveUsedWords() {
+  fs.writeFileSync(USED_WORDS_FILE, JSON.stringify(roomUsedWords, null, 2));
+}
+// -------------------------------------
 
 // --- KEEPING EXISTING WORD BANK AS A FALLBACK ---
 const wordBank = [
@@ -300,7 +321,6 @@ io.on('connection', (socket) => {
         status: 'lobby', 
         votes: {},
         wordData: null,
-        usedWords: [], // NEW: Track words generated in this room to avoid repeats
         settings: { numImposters: 1, isRandomImposters: false, category: 'Random' },
         currentTurnIndex: 0,
         startingPlayerIndex: 0,
@@ -402,63 +422,37 @@ io.on('connection', (socket) => {
     numImps = Math.min(Math.max(1, numImps), room.players.length - 1);
     room.actualNumImposters = numImps;
 
+    // Make sure this room has an array tracking used words
+    if (!roomUsedWords[roomCode]) {
+        roomUsedWords[roomCode] = [];
+    }
+    
+    // Prepare the list of used words to tell the AI to avoid
+    const currentUsedWords = roomUsedWords[roomCode];
+    const usedWordsString = currentUsedWords.length > 0 ? currentUsedWords.join(', ') : 'None';
+
     // --- GROQ AI WORD GENERATION LOGIC ---
     let generatedWordData = null;
     try {
       const selectedCategory = room.settings.category === 'Random' ? 'a random popular topic' : room.settings.category;
       
-      // Get the list of previously used words to avoid repetition
-      const usedWordsList = room.usedWords && room.usedWords.length > 0 
-        ? room.usedWords.join(', ') 
-        : "None";
-      
       const response = await openai.chat.completions.create({
-  model: "llama-3.1-8b-instant", // Fast model
-  response_format: { type: "json_object" }, // Force JSON output
-  messages: [
-    { 
-      role: "system", 
-      content: `
-You are a backend game server generating data for a word guessing game.
-
-The players are not native English speakers, so use SIMPLE and COMMON English.
-
-Rules:
-- Use easy words (A2–B1 level).
-- Word should be from daily life (things people see/use often).
-- Avoid difficult, rare, or technical words.
-- Do NOT use proper nouns (no people, cities, brands).
-- Clues must be very simple and clear.
-- Each clue must be 1–2 words only.
-- Avoid confusing synonyms or complex vocabulary.
-- Make clues helpful but not too obvious.
-
-Output format strictly:
-{
-  "word": "Apple",
-  "clues": ["Fruit", "Red", "Sweet"]
-}
-      `
-    },
-    { 
-      role: "user", 
-      content: `
-Generate ONE word and exactly 3 simple clues for category: ${selectedCategory}.
-
-Rules:
-- Word must be a common noun.
-- Word must be easy to understand.
-- Clues must be short (max 2 words).
-- Use simple English only.
-- Do not repeat words if possible.
-- Make it fun and easy to guess.
-
-Return ONLY JSON.
-      `
-    }
-  ],
-  temperature: 0.6,
-});
+        model: "llama-3.1-8b-instant",
+        response_format: { type: "json_object" }, 
+        messages: [
+          { 
+            role: "system", 
+            content: `You are a backend game server generating data for a game. You must output a JSON object containing a "word" string and a "clues" array of 3 strings. Example format: {"word": "Apple", "clues": ["Fruit", "Red", "Crisp"]} ensure clues are concise and relevant to the word. The word should be recognizable but not too easy, and the clues should be helpful but not give it away immediately.` 
+          },
+          { 
+            role: "user", 
+            content: `Generate a recognizable secret word and exactly 3 short clues for the category: ${selectedCategory}. 
+            CRITICAL INSTRUCTION: Do NOT generate any of the following previously used words: [${usedWordsString}]. 
+            The clues should be 1-3 words max. Ensure the JSON structure is perfectly formatted.` 
+          }
+        ],
+        temperature: 0.9, // Bumped slightly for more variance
+      });
 
       const text = response.choices[0].message.content.trim();
       generatedWordData = JSON.parse(text);
@@ -469,25 +463,24 @@ Return ONLY JSON.
     }
 
     // Set wordData: Use Groq if successful, otherwise fallback
-    if (generatedWordData && generatedWordData.word && generatedWordData.clues) {
+    if (generatedWordData && generatedWordData.word && generatedWordData.clues && !currentUsedWords.includes(generatedWordData.word)) {
       room.wordData = generatedWordData;
     } else {
-      // Filter out words that have already been played in this room
-      let availableWords = wordBank.filter(w => !room.usedWords.includes(w.word));
+      // Fallback: Filter out words that have already been played in this room
+      let availableWords = wordBank.filter(w => !currentUsedWords.includes(w.word));
       
-      // If by some miracle they played through the entire wordbank, reset the available words
+      // If we somehow played EVERY word in the fallback bank, reset the history for the fallback to avoid a crash
       if (availableWords.length === 0) {
           availableWords = wordBank;
       }
       
       room.wordData = availableWords[Math.floor(Math.random() * availableWords.length)];
     }
-    
-    // Track the new word so it isn't repeated next time
-    if (room.wordData && room.wordData.word) {
-        if (!room.usedWords) room.usedWords = [];
-        room.usedWords.push(room.wordData.word);
-    }
+
+    // Save the newly chosen word to the room's history file so it is remembered tomorrow
+    roomUsedWords[roomCode].push(room.wordData.word);
+    saveUsedWords();
+
     // ---------------------------------
 
     const cluesAvailable = getClues(room.wordData).sort(() => 0.5 - Math.random());
