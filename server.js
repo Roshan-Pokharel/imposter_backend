@@ -324,7 +324,8 @@ io.on('connection', (socket) => {
         settings: { numImposters: 1, isRandomImposters: false, category: 'Random' },
         currentTurnIndex: 0,
         startingPlayerIndex: 0,
-        actualNumImposters: 1
+        actualNumImposters: 1,
+        isGenerating: false // Server-side lock added
       };
     }
 
@@ -357,10 +358,11 @@ io.on('connection', (socket) => {
       socket.emit('roomJoined', { code: roomCode });
       socket.emit('gameStateUpdate', room);
       
-      if (room.status === 'playing') {
+      // Fix: Ensured role state transfers correctly upon refresh during playing or guessing phase
+      if (['playing', 'imposterGuess', 'results'].includes(room.status)) {
         socket.emit('gameStarted', {
           role: player.role,
-          secretWord: player.role === 'imposter' ? null : room.wordData.word,
+          secretWord: player.role === 'imposter' ? null : room.wordData?.word,
           clue: player.role === 'imposter' ? player.assignedClue : null
         });
       }
@@ -411,6 +413,10 @@ io.on('connection', (socket) => {
   socket.on('startGame', async (roomCode) => {
     const room = rooms[roomCode];
     if (!room || room.players.length < 2) return; 
+    
+    // Server-side lock to prevent multiple generation queries when heavily tapped
+    if (room.isGenerating) return;
+    room.isGenerating = true;
 
     // Let clients know game generation is processing
     io.to(roomCode).emit('generatingGame');
@@ -436,7 +442,7 @@ io.on('connection', (socket) => {
     try {
       const selectedCategory = room.settings.category === 'Random' ? 'a random popular topic' : room.settings.category;
       
-      const response = await openai.chat.completions.create({
+      const aiPromise = openai.chat.completions.create({
         model: "llama-3.1-8b-instant",
         response_format: { type: "json_object" }, 
         messages: [
@@ -479,16 +485,26 @@ io.on('connection', (socket) => {
            ` 
           }
         ],
-        temperature: 0.9, // Bumped slightly for more variance
+        temperature: 0.9, 
       });
 
-      const text = response.choices[0].message.content.trim();
+      // Implement an 8-second safety timeout so latency prevents server stalling if Groq hangs 
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('AI Request Timeout')), 8000));
+      const response = await Promise.race([aiPromise, timeoutPromise]);
+
+      // Strip markdown codeblocks incase Groq replies heavily formatted causing a silent crash latency
+      let text = response.choices[0].message.content.trim();
+      text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+
       generatedWordData = JSON.parse(text);
       console.log("Groq AI Generated Word:", generatedWordData);
 
     } catch (error) {
-      console.error("Groq AI Generation failed. Falling back to local wordBank.", error.message);
+      console.error("Groq AI Generation failed/timed out. Falling back to local wordBank.", error.message);
     }
+    
+    // Unlock generator early
+    room.isGenerating = false;
 
     // Set wordData: Use Groq if successful, otherwise fallback
     if (generatedWordData && generatedWordData.word && generatedWordData.clues && !currentUsedWords.includes(generatedWordData.word)) {
